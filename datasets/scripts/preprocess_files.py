@@ -11,6 +11,7 @@ ROOT_SCRIPTS_PATH = os.path.abspath(os.path.join(
 sys.path.append(ROOT_SCRIPTS_PATH)
 import media_descriptor  # nopep8
 import media_audio  # nopep8
+import utils # nopep8
 
 
 def parse_args(args=sys.argv[1:]):
@@ -99,11 +100,11 @@ def preprocess_audio(path, **params):
                          res_type='linear', scale=True)
 
     output = media_audio.PreprocessedAudio(
-        y, sr_target, duration, media_audio.make_path_relative(path))
+        y, sr_target, duration, utils.make_path_relative(path))
     return output
 
 def preprocess_file(path, descriptors, destfolder, sr):
-    p_relative = media_audio.make_path_relative(path)
+    p_relative = utils.make_path_relative(path)
     signature = search_for_preprocessing(descriptors, p_relative, sr=sr)
     if signature is not None:
         print('Skiping processing for file "%s". Signature=%s' %

@@ -1,3 +1,4 @@
 datasets/samples/
 *.pyc
 .vscode
+*.h5

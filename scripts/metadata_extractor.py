@@ -1,10 +1,11 @@
 import csv
 import os
 
+# maps allowed classes and the corresponding one-hot encoding
 ALLOWED_CLASSES = {
     'horn': 0,
     'siren': 1,
-    'noise': 3
+    'noise': 2
 }
 
 

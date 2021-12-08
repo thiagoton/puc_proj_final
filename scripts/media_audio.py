@@ -1,14 +1,7 @@
 import librosa
 import os
 import hashlib
-
-PROJECT_PATH = os.path.realpath(os.path.join(
-    os.path.dirname(os.path.realpath(__file__)), '..'))
-
-
-def make_path_relative(input_path):
-    return os.path.relpath(os.path.realpath(input_path), PROJECT_PATH)
-
+from utils import *
 
 class BaseAudio:
     '''
@@ -53,6 +46,23 @@ class PreprocessedAudio(BaseAudio):
         '''
         return hashlib.md5(self.y).hexdigest()
 
+
+def list_media_files(dir, recursively=False):
+    list_files = []
+    for root, dirs, files in os.walk(dir):
+        for f in files:
+            if '.wav' not in f:
+                continue
+
+            fullpath = os.path.join(root, f)
+            if not os.path.exists(fullpath.replace('.wav', '.json')):
+                continue
+
+            list_files.append(make_path_relative(fullpath))
+        
+        if recursively == False:
+            break
+    return list_files
 
 class MediaAudio(BaseAudio):
     def __init__(self) -> None:
