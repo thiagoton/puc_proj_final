@@ -1,4 +1,5 @@
-datasets/samples/
+datasets/samples/preprocessed
+datasets/samples/raw
 *.pyc
 .vscode
 *.h5
