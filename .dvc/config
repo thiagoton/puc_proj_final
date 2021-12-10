@@ -1,4 +1,5 @@
 [core]
     remote = data_bucket
+    autostage = true
 ['remote "data_bucket"']
     url = gdrive://1xmrgHq87PJVirxInrKpmXQjJF_gO-ZxT
