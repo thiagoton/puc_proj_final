@@ -87,34 +87,45 @@ class WaveNetFactory(BaseModel):
     def build_model(self, **kwargs):
         model = keras.Sequential()
 
-        op = Conv1D(filters=64, kernel_size=64, padding='same', input_shape=(self.INPUT_SIZE, 1))
+        he_normal = lambda: keras.initializers.HeNormal()
+
+        op = Conv1D(filters=64, kernel_size=64, padding='same', input_shape=(self.INPUT_SIZE, 1), kernel_initializer=he_normal())
         model.add(op)
 
-        op = Conv1D(filters=64, kernel_size=64, padding='same', input_shape=(self.INPUT_SIZE, 1))
+        op = Conv1D(filters=64, kernel_size=64, padding='same', kernel_initializer=he_normal())
         model.add(op)
 
         op = MaxPooling1D(pool_size=220)
         model.add(op)
 
+        op = Dropout(rate=0.1)
+        model.add(op)
+
         op = Reshape((64, 163, 1))
         model.add(op)
 
-        op = Conv2D(filters=32, kernel_size=(4, 4), padding='same', strides=(1,1))
+        op = Conv2D(filters=32, kernel_size=(4, 4), padding='same', strides=(1,1), kernel_initializer=he_normal())
         model.add(op)
 
-        op = Conv2D(filters=32, kernel_size=(4, 4), padding='same', strides=(1,1))
+        op = Conv2D(filters=32, kernel_size=(4, 4), padding='same', strides=(1,1), kernel_initializer=he_normal())
+        model.add(op)
+
+        op = MaxPooling2D(pool_size=(2,2), strides=(2,2))
+        model.add(op)
+
+        op = Dropout(rate=0.1)
+        model.add(op)
+
+        op = Conv2D(filters=64, kernel_size=(4, 4), padding='same', strides=(1,1), kernel_initializer=he_normal())
+        model.add(op)
+
+        op = Conv2D(filters=64, kernel_size=(4, 4), padding='same', strides=(1,1), kernel_initializer=he_normal())
         model.add(op)
 
         op = MaxPooling2D(pool_size=(2,2), strides=(2,2))
         model.add(op)
 
-        op = Conv2D(filters=64, kernel_size=(4, 4), padding='same', strides=(1,1))
-        model.add(op)
-
-        op = Conv2D(filters=64, kernel_size=(4, 4), padding='same', strides=(1,1))
-        model.add(op)
-
-        op = MaxPooling2D(pool_size=(2,2), strides=(2,2))
+        op = Dropout(rate=0.1)
         model.add(op)
 
         op = Flatten()
@@ -122,7 +133,7 @@ class WaveNetFactory(BaseModel):
 
         model.add(Dense(512))
         model.add(Dense(64))
-        model.add(Dense(3))
+        model.add(Dense(3, activation='softmax'))
 
         model.compile(loss='categorical_crossentropy',
                       optimizer='adam', metrics=['accuracy'])

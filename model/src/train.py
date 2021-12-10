@@ -1,4 +1,5 @@
 import keras
+from numpy.lib import utils
 from model import *
 import sys
 import os
@@ -6,6 +7,7 @@ import numpy as np
 import typing
 import random
 import tensorflow as tf
+import datetime
 
 # import infrastructure
 ROOT_SCRIPTS_PATH = os.path.abspath(os.path.join(
@@ -14,6 +16,7 @@ sys.path.append(ROOT_SCRIPTS_PATH)
 import media_descriptor  # nopep8
 import media_audio  # nopep8
 import metadata_extractor  # nopep8
+import utils # nopep8
 
 
 def load_data(path: str) -> typing.Tuple[media_audio.MediaAudio, media_descriptor.MediaDescriptor]:
@@ -44,7 +47,7 @@ def prepare_data(data: media_audio.MediaAudio, metadata: media_descriptor.MediaD
     while len(audio) < input_size:
         audio = np.concatenate((audio, audio), axis=None)
 
-    for i in range(input_size, len(audio), int(input_size/10)):
+    for i in range(input_size, len(audio), int(input_size/5)):
         y = np.zeros((output_size,))
         y[label] = 1
         Y.append(y)
@@ -77,14 +80,35 @@ def prepare_batch(trainlist, batch_size, batch_index, dnn_input_size):
             Y = np.vstack((Y, y))
     return X, Y
 
+def prepare_experiment(experiment_tag):
+    experiment_folder = os.path.join(utils.make_path_absolute('experiments'), experiment_tag)
+    os.makedirs(experiment_folder)
+
+    checkpoint_folder = os.path.join(experiment_folder, 'checkpoints')
+    os.makedirs(checkpoint_folder)
+
+    logs_folder = os.path.join(experiment_folder, 'logs')
+    os.makedirs(logs_folder)
+
+    return experiment_folder, checkpoint_folder, logs_folder
+
 def train(trainlist):
     keras.backend.clear_session()
     factory = WaveNetFactory()
     m = factory.build_model()
-    batch_size = 5
+    batch_size = 10
 
+    experiment_tag = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    experiment_folder, checkpoint_folder, logs_folder = prepare_experiment(experiment_tag)
+
+    print('Starting experiment "%s". Output folder: %s' % (experiment_tag, experiment_folder))
+
+    print('Model summary:')
     print(m.summary())
 
+    tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logs_folder)
+
+    fit_count = 1
     for epoch_index in range(50):
         random.shuffle(trainlist)
 
@@ -105,8 +129,14 @@ def train(trainlist):
             # break
             print('epoch: %d - %d/%d' %
                   (epoch_index + 1, batch_index + 1, final_batch_index))
-            m.fit(X, Y, batch_size=8)
-        m.save('experiments/%03d.h5' % (epoch_index + 1))
+            m.fit(X, Y, batch_size=8, 
+                callbacks=[tensorboard_callback], epochs=fit_count, initial_epoch=fit_count-1)
+            fit_count += 1
+
+        checkpoint_name = '%05d.h5' % (epoch_index + 1)
+        checkpoint_path = os.path.join(checkpoint_folder, checkpoint_name)
+        print('Saving checkpoint "%s"' % checkpoint_path)
+        m.save(checkpoint_path)
 
 
 trainlist = []
