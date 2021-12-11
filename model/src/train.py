@@ -32,7 +32,8 @@ def load_data(path: str) -> typing.Tuple[media_audio.MediaAudio, media_descripto
     return data, metadata
 
 
-def prepare_data(data: media_audio.MediaAudio, metadata: media_descriptor.MediaDescriptor, input_size: int) -> typing.Tuple[np.array, np.array]:
+def prepare_data(data: media_audio.MediaAudio, metadata: media_descriptor.MediaDescriptor, 
+                input_size: int, window_overlap: float) -> typing.Tuple[np.array, np.array]:
     '''
     Prepare data so in can be fed into training phase
     '''
@@ -47,7 +48,7 @@ def prepare_data(data: media_audio.MediaAudio, metadata: media_descriptor.MediaD
     while len(audio) < input_size:
         audio = np.concatenate((audio, audio), axis=None)
 
-    for i in range(input_size, len(audio), int(input_size/5)):
+    for i in range(input_size, len(audio), int(input_size * window_overlap)):
         y = np.zeros((output_size,))
         y[label] = 1
         Y.append(y)
@@ -58,7 +59,7 @@ def prepare_data(data: media_audio.MediaAudio, metadata: media_descriptor.MediaD
     return np.array(X), np.array(Y)
 
 
-def prepare_batch(trainlist, batch_size, batch_index, dnn_input_size):
+def prepare_batch(trainlist, batch_size, batch_index, dnn_input_size, window_overlap):
     idx_start = batch_index * batch_size
     idx_end = idx_start + batch_size
     batch_list = trainlist[idx_start:idx_end]
@@ -70,7 +71,7 @@ def prepare_batch(trainlist, batch_size, batch_index, dnn_input_size):
 
     for file in batch_list:
         data, metadata = load_data(file)
-        x, y = prepare_data(data, metadata, dnn_input_size)
+        x, y = prepare_data(data, metadata, dnn_input_size, window_overlap)
 
         if X is None:
             X = x
@@ -95,20 +96,23 @@ def prepare_experiment(experiment_tag):
 def train(trainlist):
     keras.backend.clear_session()
     params = utils.load_params()
-    print(params)
-    m = model.build_model(params)
+    factory = model.get_factory(params)
+    m = factory.build_model()
     print(m.summary())
-    quit(0)
 
-    tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logs_folder)
+    epochs = params['epochs']
+    batch_size = params['batch_size']
+    file_batch_size = params['file_batch_size']
+    keep_checkpoint_at_every_n_fit = params['keep_checkpoint_at_every_n_fit']
+    window_overlap = params['window_overlap']
 
-    fit_count = 1
-    for epoch_index in range(50):
+    fit_count = 0
+    for epoch_index in range(epochs):
         random.shuffle(trainlist)
 
-        final_batch_index = int(len(trainlist)/batch_size)
-        for batch_index in range(0, final_batch_index):
-            ret = prepare_batch(trainlist, batch_size, batch_index, factory.INPUT_SIZE)
+        file_batch_total = int(len(trainlist)/file_batch_size)
+        for file_batch_index in range(0, file_batch_total):
+            ret = prepare_batch(trainlist, file_batch_size, file_batch_index, factory.INPUT_SIZE, window_overlap)
 
             if ret is None:
                 break
@@ -122,15 +126,18 @@ def train(trainlist):
             # print(Y.shape)
             # break
             print('epoch: %d - %d/%d' %
-                  (epoch_index + 1, batch_index + 1, final_batch_index))
-            m.fit(X, Y, batch_size=8, 
-                callbacks=[tensorboard_callback], epochs=fit_count, initial_epoch=fit_count-1)
+                  (epoch_index + 1, file_batch_index + 1, file_batch_total))
+            history = m.fit(X, Y, batch_size=batch_size)
             fit_count += 1
 
-        checkpoint_name = '%05d.h5' % (epoch_index + 1)
-        checkpoint_path = os.path.join(checkpoint_folder, checkpoint_name)
-        print('Saving checkpoint "%s"' % checkpoint_path)
-        m.save(checkpoint_path)
+            if (keep_checkpoint_at_every_n_fit > 0) and (fit_count % keep_checkpoint_at_every_n_fit == 0):
+                # save model here
+                pass
+
+        # checkpoint_name = '%05d.h5' % (epoch_index + 1)
+        # checkpoint_path = os.path.join(checkpoint_folder, checkpoint_name)
+        # print('Saving checkpoint "%s"' % checkpoint_path)
+        # m.save(checkpoint_path)
 
 
 trainlist = []

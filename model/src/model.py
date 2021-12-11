@@ -76,7 +76,9 @@ class Cnn(BaseFactory):
         op = Flatten()
         model.add(op)
 
-        model.add(Dense(3))
+        model.add(Dense(512))
+        model.add(Dense(64))
+        model.add(Dense(3, activation='softmax'))
         model.compile(loss='categorical_crossentropy',
                       optimizer='adam', metrics=['accuracy'])
         return model
@@ -144,9 +146,9 @@ class WaveNet(BaseFactory):
         return model
 register_factory(WaveNet)
 
-def build_model(params):
+def get_factory(params):
     model_name = params['model_name']
     assert model_name in AVAILABLE_FACTORIES.keys()
     factory_type = AVAILABLE_FACTORIES[model_name]
     factory = factory_type(**params[model_name])
-    return factory.build_model()
+    return factory

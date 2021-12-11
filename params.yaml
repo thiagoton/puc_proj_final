@@ -1,4 +1,20 @@
-model_name: TimeDistributedCnnLstm
+# model name
+model_name: Cnn
+
+# batch size used during fit
+batch_size: 32
+
+# number of epochs to train the model
+epochs: 2
+
+# number of simultaneous files to open
+file_batch_size: 5
+
+# save model at every n-th call to fit (<=0 to disable)
+keep_checkpoint_at_every_n_fit: 10
+
+# amount of overlap between consecutive windows
+window_overlap: 1
 
 Cnn:
   input_size: 32
