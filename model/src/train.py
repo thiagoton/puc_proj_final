@@ -1,6 +1,6 @@
 import keras
 from numpy.lib import utils
-from model import *
+import model
 import sys
 import os
 import numpy as np
@@ -94,17 +94,11 @@ def prepare_experiment(experiment_tag):
 
 def train(trainlist):
     keras.backend.clear_session()
-    factory = WaveNetFactory()
-    m = factory.build_model()
-    batch_size = 10
-
-    experiment_tag = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    experiment_folder, checkpoint_folder, logs_folder = prepare_experiment(experiment_tag)
-
-    print('Starting experiment "%s". Output folder: %s' % (experiment_tag, experiment_folder))
-
-    print('Model summary:')
+    params = utils.load_params()
+    print(params)
+    m = model.build_model(params)
     print(m.summary())
+    quit(0)
 
     tensorboard_callback = keras.callbacks.TensorBoard(log_dir=logs_folder)
 
