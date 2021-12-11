@@ -1,0 +1,7 @@
+stages:
+  decompress_dataset:
+    cmd: sh datasets/scripts/decompress_dataset.sh
+    deps:
+    - datasets/preprocessed.tar.xz
+    outs:
+    - datasets/samples

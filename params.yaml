@@ -1,0 +1,8 @@
+model_name: TimeDistributedCnnLstm
+
+Cnn:
+  input_size: 32
+
+WaveNet: {}
+
+TimeDistributedCnnLstm: {}
