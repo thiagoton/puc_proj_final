@@ -93,6 +93,12 @@ def prepare_experiment(experiment_tag):
 
     return experiment_folder, checkpoint_folder, logs_folder
 
+def save_model(m, ckpt_folder, epoch, file_batch_index=0, fit_count=0):
+    checkpoint_name = 'ckpt_%05d-%05d-%05d.h5' % (epoch, file_batch_index, fit_count)
+    checkpoint_path = os.path.join(ckpt_folder, checkpoint_name)
+    print('Saving checkpoint "%s"' % checkpoint_path)
+    m.save(checkpoint_path)
+
 def train(trainlist):
     keras.backend.clear_session()
     params = utils.load_params()
@@ -103,8 +109,11 @@ def train(trainlist):
     epochs = params['epochs']
     batch_size = params['batch_size']
     file_batch_size = params['file_batch_size']
-    keep_checkpoint_at_every_n_fit = params['keep_checkpoint_at_every_n_fit']
+    keep_checkpoint_at_every_n_epoch = params['keep_checkpoint_at_every_n_epoch']
     window_overlap = params['window_overlap']
+
+    experiment_tag = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+    experiment_folder, checkpoint_folder, logs_folder = prepare_experiment(experiment_tag)
 
     fit_count = 0
     for epoch_index in range(epochs):
@@ -130,9 +139,8 @@ def train(trainlist):
             history = m.fit(X, Y, batch_size=batch_size)
             fit_count += 1
 
-            if (keep_checkpoint_at_every_n_fit > 0) and (fit_count % keep_checkpoint_at_every_n_fit == 0):
-                # save model here
-                pass
+        if (keep_checkpoint_at_every_n_epoch > 0) and (epoch_index % keep_checkpoint_at_every_n_epoch == 0):
+            save_model(m, checkpoint_folder, epoch_index + 1)
 
         # checkpoint_name = '%05d.h5' % (epoch_index + 1)
         # checkpoint_path = os.path.join(checkpoint_folder, checkpoint_name)

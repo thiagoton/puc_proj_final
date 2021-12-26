@@ -5,3 +5,11 @@ stages:
     - datasets/preprocessed.tar.xz
     outs:
     - datasets/samples
+  train:
+    cmd: python model/src/train.py
+    deps:
+    - datasets/samples/preprocessed/
+    - model/src/train.py
+    outs:
+    - experiments/:
+        persist: true
