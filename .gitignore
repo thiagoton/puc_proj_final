@@ -5,3 +5,4 @@ datasets/samples/raw
 *.h5
 __pycache__/*
 experiments/*
+/experiments

@@ -1,0 +1,28 @@
+schema: '2.0'
+stages:
+  decompress_dataset:
+    cmd: sh datasets/scripts/decompress_dataset.sh
+    deps:
+    - path: datasets/preprocessed.tar.xz
+      md5: 42d49fa27c18de67c761b82714a33efc
+      size: 2283776000
+    outs:
+    - path: datasets/samples
+      md5: e95be0bfe95c0518d54930c954cd54e2.dir
+      size: 2270042409
+      nfiles: 17464
+  train:
+    cmd: python model/src/train.py
+    deps:
+    - path: datasets/samples/preprocessed/
+      md5: 65e73a0517c160945022ac8539d14878.dir
+      size: 2270042409
+      nfiles: 17464
+    - path: model/src/train.py
+      md5: 6422d0dc2991f45b9da11ada910acf58
+      size: 4992
+    outs:
+    - path: experiments/
+      md5: e3631dfd71d45d5a0a77abce00c8aa26.dir
+      size: 8181728
+      nfiles: 2
