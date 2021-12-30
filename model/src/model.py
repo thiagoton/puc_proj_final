@@ -41,6 +41,33 @@ class TimeDistributedCnnLstm(BaseFactory):
         return model
 register_factory(TimeDistributedCnnLstm)
 
+class SmallCnn(BaseFactory):
+    '''
+    Useful for pipeline validation, since it runs fast, but it is not intended to learn anything
+    '''
+    def __init__(self, **params) -> None:
+        super().__init__()
+        self.INPUT_SIZE = int(params.get('input_size', 128))
+
+    def build_model(self, **kwargs):
+        model = keras.Sequential()
+
+        op = Conv1D(5, 5, padding='causal', input_shape=(self.INPUT_SIZE, 1))
+        model.add(op)
+
+        op = MaxPooling1D(pool_size=2)
+        model.add(op)
+
+        op = Flatten()
+        model.add(op)
+
+        model.add(Dense(16))
+        model.add(Dense(3, activation='softmax'))
+        model.compile(loss='categorical_crossentropy',
+                      optimizer='adam', metrics=['accuracy'])
+        return model
+register_factory(SmallCnn)
+
 class Cnn(BaseFactory):
     def __init__(self, **params) -> None:
         super().__init__()
