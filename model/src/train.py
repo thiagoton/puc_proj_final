@@ -1,13 +1,14 @@
 import keras
 from numpy.lib import utils
+from tensorflow.keras import callbacks
 import model
 import sys
 import os
 import numpy as np
-import typing
-import random
-import tensorflow as tf
+# Import TensorBoard
 import datetime
+from generator import *
+import json
 
 # import infrastructure
 ROOT_SCRIPTS_PATH = os.path.abspath(os.path.join(
@@ -16,73 +17,12 @@ sys.path.append(ROOT_SCRIPTS_PATH)
 import media_descriptor  # nopep8
 import media_audio  # nopep8
 import metadata_extractor  # nopep8
-import utils # nopep8
+import utils  # nopep8
 
-
-def load_data(path: str) -> typing.Tuple[media_audio.MediaAudio, media_descriptor.MediaDescriptor]:
-    '''
-    Loads audio file and associated metadata
-    '''
-    data = media_audio.MediaAudio()
-    # print(path)
-    data.load(path)
-
-    metadata = media_descriptor.MediaDescriptor(path.replace('.wav', '.json'))
-    metadata.read()
-    return data, metadata
-
-
-def prepare_data(data: media_audio.MediaAudio, metadata: media_descriptor.MediaDescriptor, 
-                input_size: int, window_overlap: float) -> typing.Tuple[np.array, np.array]:
-    '''
-    Prepare data so in can be fed into training phase
-    '''
-    output_size = len(metadata_extractor.ALLOWED_CLASSES.keys())
-    audio = data.y
-    label = metadata_extractor.translate_label(
-        metadata_extractor.ALLOWED_CLASSES, metadata.data()['label'])
-
-    X = []
-    Y = []
-
-    while len(audio) < input_size:
-        audio = np.concatenate((audio, audio), axis=None)
-
-    for i in range(input_size, len(audio), int(input_size * window_overlap)):
-        y = np.zeros((output_size,))
-        y[label] = 1
-        Y.append(y)
-
-        x = np.expand_dims(np.array(audio[(i - input_size):i]), axis=-1)
-        X.append(x)
-
-    return np.array(X), np.array(Y)
-
-
-def prepare_batch(trainlist, batch_size, batch_index, dnn_input_size, window_overlap):
-    idx_start = batch_index * batch_size
-    idx_end = idx_start + batch_size
-    batch_list = trainlist[idx_start:idx_end]
-
-    X = None
-    Y = None
-    if len(batch_list) == 0:
-        return None
-
-    for file in batch_list:
-        data, metadata = load_data(file)
-        x, y = prepare_data(data, metadata, dnn_input_size, window_overlap)
-
-        if X is None:
-            X = x
-            Y = y
-        else:
-            X = np.vstack((X, x))
-            Y = np.vstack((Y, y))
-    return X, Y
 
 def prepare_experiment(experiment_tag):
-    experiment_folder = os.path.join(utils.make_path_absolute('experiments'), experiment_tag)
+    experiment_folder = os.path.join(
+        utils.make_path_absolute('experiments'), experiment_tag)
     os.makedirs(experiment_folder)
 
     checkpoint_folder = os.path.join(experiment_folder, 'checkpoints')
@@ -93,13 +33,16 @@ def prepare_experiment(experiment_tag):
 
     return experiment_folder, checkpoint_folder, logs_folder
 
+
 def save_model(m, ckpt_folder, epoch, file_batch_index=0, fit_count=0):
-    checkpoint_name = 'ckpt_%05d-%05d-%05d.h5' % (epoch, file_batch_index, fit_count)
+    checkpoint_name = 'ckpt_%05d-%05d-%05d.h5' % (
+        epoch, file_batch_index, fit_count)
     checkpoint_path = os.path.join(ckpt_folder, checkpoint_name)
     print('Saving checkpoint "%s"' % checkpoint_path)
     m.save(checkpoint_path)
 
-def train(trainlist):
+
+def train(trainlist, validationlist=[]):
     keras.backend.clear_session()
     params = utils.load_params()
     factory = model.get_factory(params)
@@ -111,41 +54,59 @@ def train(trainlist):
     file_batch_size = params['file_batch_size']
     keep_checkpoint_at_every_n_epoch = params['keep_checkpoint_at_every_n_epoch']
     window_overlap = params['window_overlap']
+    num_workers = os.cpu_count()
+    if num_workers is None:
+        num_workers = 2
+        print('Number of workers set to 2')
 
     experiment_tag = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
-    experiment_folder, checkpoint_folder, logs_folder = prepare_experiment(experiment_tag)
+    experiment_folder, checkpoint_folder, logs_folder = prepare_experiment(
+        experiment_tag)
 
-    fit_count = 0
+    if len(validationlist):
+        tensorboard_cb = callbacks.TensorBoard(log_dir=logs_folder, histogram_freq=1)
+    else:
+        tensorboard_cb = callbacks.TensorBoard(log_dir=logs_folder)
+
+    data_gen = DataGenerator(trainlist, file_batch_size,
+                             factory.INPUT_SIZE, window_overlap)
+    val_data_gen = None
+    if len(validationlist):
+        val_data_gen = DataGenerator(validationlist,
+                                     file_batch_size,
+                                     factory.INPUT_SIZE, window_overlap)
     for epoch_index in range(epochs):
-        random.shuffle(trainlist)
+        print('epoch: %d' % (epoch_index + 1))
+        val_data = None
+        if val_data_gen:
+            val_x = None
+            val_y = None
+            for n in range(5):
+                x, y = val_data_gen[n]
+                if val_x is None:
+                    val_x = x
+                    val_y = y
+                else:
+                    val_x = np.vstack((val_x, x))
+                    val_y = np.vstack((val_y, y))
+            val_data = (val_x, val_y)
 
-        file_batch_total = int(len(trainlist)/file_batch_size)
-        for file_batch_index in range(0, file_batch_total):
-            ret = prepare_batch(trainlist, file_batch_size, file_batch_index, factory.INPUT_SIZE, window_overlap)
+            val_data_gen.on_epoch_end()
 
-            if ret is None:
-                break
+        history = m.fit(data_gen,
+                        batch_size=batch_size,
+                        callbacks=[tensorboard_cb],
+                        initial_epoch=epoch_index,
+                        epochs=epoch_index+1,
+                        validation_data=val_data,
+                        verbose=1)
 
-            X, Y = ret
-
-            idxs = tf.random.shuffle(tf.range(X.shape[0]))
-            X = tf.gather(X, idxs)
-            Y = tf.gather(Y, idxs)
-            # print(X.shape)
-            # print(Y.shape)
-            # break
-            print('epoch: %d - %d/%d' %
-                  (epoch_index + 1, file_batch_index + 1, file_batch_total))
-            history = m.fit(X, Y, batch_size=batch_size)
-            fit_count += 1
+        with open('metrics.json', 'a') as fd:
+            json.dump(history.history, fd)
+            fd.write('\n')
 
         if (keep_checkpoint_at_every_n_epoch > 0) and (epoch_index % keep_checkpoint_at_every_n_epoch == 0):
             save_model(m, checkpoint_folder, epoch_index + 1)
-
-        # checkpoint_name = '%05d.h5' % (epoch_index + 1)
-        # checkpoint_path = os.path.join(checkpoint_folder, checkpoint_name)
-        # print('Saving checkpoint "%s"' % checkpoint_path)
-        # m.save(checkpoint_path)
 
 
 trainlist = []
@@ -153,4 +114,9 @@ with open('datasets/trainlist.txt', 'r') as f:
     for line in f.readlines():
         trainlist.append(line.replace('\n', ''))
 
-train(trainlist)
+validationlist = []
+with open('datasets/testlist.txt', 'r') as f:
+    for line in f.readlines():
+        validationlist.append(line.replace('\n', ''))
+
+train(trainlist, validationlist)
