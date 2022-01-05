@@ -91,16 +91,21 @@ class DataGenerator(keras.utils.data_utils.Sequence):
         assert window_overlap > 0 and window_overlap < 1
         self.window_overlap = window_overlap
 
-    def __getitem__(self, item):
+    def get_batch_item(self, item, shuffle=True):
         ret = prepare_batch(self.file_list, self.file_batch_size,
                             item, self.input_size, self.window_overlap)
 
         assert ret is not None
         X, Y = ret
-        idxs = tf.random.shuffle(tf.range(X.shape[0]))
-        X = tf.gather(X, idxs)
-        Y = tf.gather(Y, idxs)
+
+        if shuffle:
+            idxs = tf.random.shuffle(tf.range(X.shape[0]))
+            X = tf.gather(X, idxs)
+            Y = tf.gather(Y, idxs)
         return X, Y
+
+    def __getitem__(self, item):
+        return self.get_batch_item(item)
 
     def __len__(self):
         return int(np.floor(len(self.file_list)/self.file_batch_size))
