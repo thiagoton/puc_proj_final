@@ -12,6 +12,8 @@ install_environment() {
     if ! conda env list | grep "puc_proj_final_env" -q
     then
         conda env create -f environment.yml
+    else
+        conda env update -f environment.yml
     fi
 }
 
