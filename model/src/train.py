@@ -9,6 +9,7 @@ import numpy as np
 import datetime
 from generator import *
 import json
+import dvc.api
 
 # import infrastructure
 ROOT_SCRIPTS_PATH = os.path.abspath(os.path.join(
@@ -34,12 +35,22 @@ def prepare_experiment(experiment_tag):
     return experiment_folder, checkpoint_folder, logs_folder
 
 
+def make_dvc_checkpoint(m):
+    root = utils.make_path_absolute('experiments')
+    last_path = os.path.join(root, 'last')
+    os.makedirs(last_path, exist_ok=True)
+    ckpt_path = os.path.join(last_path, 'checkpoint.h5')
+    m.save(ckpt_path)
+    dvc.api.make_checkpoint()
+
 def save_model(m, ckpt_folder, epoch, file_batch_index=0, fit_count=0):
     checkpoint_name = 'ckpt_%05d-%05d-%05d.h5' % (
         epoch, file_batch_index, fit_count)
     checkpoint_path = os.path.join(ckpt_folder, checkpoint_name)
     print('Saving checkpoint "%s"' % checkpoint_path)
     m.save(checkpoint_path)
+
+    make_dvc_checkpoint(m)
 
 
 def train(trainlist, validationlist=[]):

@@ -19,10 +19,15 @@ stages:
       size: 2270042409
       nfiles: 17464
     - path: model/src/train.py
-      md5: 6422d0dc2991f45b9da11ada910acf58
-      size: 4992
+      md5: 61d0127cee8cf5f17d61362d44580e41
+      size: 4368
+    - path: params.yaml
+      md5: e53aaf04e89e90dd2b4d61e5b61404b6
+      size: 434
     outs:
-    - path: experiments/
-      md5: e3631dfd71d45d5a0a77abce00c8aa26.dir
-      size: 8181728
-      nfiles: 2
+    - path: experiments/last/checkpoint.h5
+      md5: 3305075f58e6b375d3322a33678cc621
+      size: 49600
+    - path: metrics.json
+      md5: 302bd9e32d8e4125610c219ebc4735cd
+      size: 138

@@ -15,5 +15,5 @@ stages:
       - metrics.json:
           cache: false
     outs:
-    - experiments/:
-        persist: true
+    - experiments/last/checkpoint.h5:
+        checkpoint: true
