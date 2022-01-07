@@ -1,0 +1,5 @@
+[core]
+    remote = data_bucket
+    autostage = true
+['remote "data_bucket"']
+    url = ssh://sftpuser@vm2.thton.dynu.net/files

@@ -1,6 +1,8 @@
-datasets/samples/
+datasets/samples/preprocessed
+datasets/samples/raw
 *.pyc
 .vscode
 *.h5
 __pycache__/*
 experiments/*
+/experiments

@@ -1,0 +1,19 @@
+stages:
+  decompress_dataset:
+    cmd: sh datasets/scripts/decompress_dataset.sh
+    deps:
+    - datasets/preprocessed.tar.xz
+    outs:
+    - datasets/samples
+  train:
+    cmd: python model/src/train.py
+    deps:
+    - datasets/samples/preprocessed/
+    - model/src/train.py
+    - params.yaml
+    metrics:
+      - metrics.json:
+          cache: false
+    outs:
+    - experiments/last/checkpoint.h5:
+        checkpoint: true
