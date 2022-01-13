@@ -43,6 +43,7 @@ def make_dvc_checkpoint(m):
     m.save(ckpt_path)
     dvc.api.make_checkpoint()
 
+
 def save_model(m, ckpt_folder, epoch, file_batch_index=0, fit_count=0):
     checkpoint_name = 'ckpt_%05d-%05d-%05d.h5' % (
         epoch, file_batch_index, fit_count)
@@ -75,7 +76,8 @@ def train(trainlist, validationlist=[]):
         experiment_tag)
 
     if len(validationlist):
-        tensorboard_cb = callbacks.TensorBoard(log_dir=logs_folder, histogram_freq=1)
+        tensorboard_cb = callbacks.TensorBoard(
+            log_dir=logs_folder, histogram_freq=1)
     else:
         tensorboard_cb = callbacks.TensorBoard(log_dir=logs_folder)
 
@@ -112,7 +114,7 @@ def train(trainlist, validationlist=[]):
                         validation_data=val_data,
                         verbose=1)
 
-        with open('metrics.json', 'a') as fd:
+        with open('metrics.json', 'w') as fd:
             json.dump(history.history, fd)
             fd.write('\n')
 
@@ -120,14 +122,7 @@ def train(trainlist, validationlist=[]):
             save_model(m, checkpoint_folder, epoch_index + 1)
 
 
-trainlist = []
-with open('datasets/trainlist.txt', 'r') as f:
-    for line in f.readlines():
-        trainlist.append(line.replace('\n', ''))
-
-validationlist = []
-with open('datasets/testlist.txt', 'r') as f:
-    for line in f.readlines():
-        validationlist.append(line.replace('\n', ''))
+trainlist = utils.load_filelist('datasets/trainlist.txt')
+validationlist = utils.load_filelist('datasets/testlist.txt')
 
 train(trainlist, validationlist)

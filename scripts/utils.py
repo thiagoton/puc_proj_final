@@ -13,3 +13,10 @@ def make_path_absolute(input_path):
 def load_params(params_file='params.yaml'):
     with open(params_file) as fd:
         return yaml.safe_load(fd)
+
+def load_filelist(path: str):
+    filelist = []
+    with open(path, 'r') as f:
+        for line in f.readlines():
+            filelist.append(line.replace('\n', ''))
+    return filelist
