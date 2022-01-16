@@ -7,8 +7,8 @@ stages:
       md5: 42d49fa27c18de67c761b82714a33efc
       size: 2283776000
     outs:
-    - path: datasets/samples
-      md5: e95be0bfe95c0518d54930c954cd54e2.dir
+    - path: datasets/samples/preprocessed
+      md5: 65e73a0517c160945022ac8539d14878.dir
       size: 2270042409
       nfiles: 17464
   train:
@@ -19,15 +19,21 @@ stages:
       size: 2270042409
       nfiles: 17464
     - path: model/src/train.py
-      md5: 61d0127cee8cf5f17d61362d44580e41
-      size: 4368
+      md5: 57509f6ce67ca79eb22a1209ad99d0ff
+      size: 5054
     - path: params.yaml
-      md5: e53aaf04e89e90dd2b4d61e5b61404b6
-      size: 434
+      md5: 83e25c10f888b0e819e8925d4c329a35
+      size: 435
     outs:
-    - path: experiments/last/checkpoint.h5
-      md5: 3305075f58e6b375d3322a33678cc621
+    - path: model/train/best.h5
+      md5: 34c88b172fe54e90d566c8aed44d443d
       size: 49600
-    - path: metrics.json
-      md5: 302bd9e32d8e4125610c219ebc4735cd
-      size: 138
+    - path: model/train/best.json
+      md5: ec4030d44ad60e795d891f41705a4350
+      size: 71
+    - path: model/train/checkpoint.h5
+      md5: aef25c3b4f29da3d9f3310e66ae8e238
+      size: 49600
+    - path: model/train/checkpoint.json
+      md5: 6ff509f5d9fefda359a7b385a4562d25
+      size: 72

@@ -1,11 +1,11 @@
 # model name
-model_name: WaveNet
+model_name: SmallCnn
 
 # batch size used during fit
-batch_size: 32
+batch_size: 16
 
 # number of epochs to train the model
-epochs: 20
+epochs: 3
 
 # number of simultaneous files to open
 file_batch_size: 5
