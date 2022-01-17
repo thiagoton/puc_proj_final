@@ -67,10 +67,9 @@ def save_checkpoint(m: keras.Model, epoch: int, checkpoint_folder: str, state={}
     dvc.api.make_checkpoint()
 
 
-def save_best(m: keras.Model, save_folder: str, state={}, model_name='best.h5'):
-    checkpoint_name = model_name
-    save_model(m, save_folder, checkpoint_name)
-    with open(os.path.join(save_folder, 'best.json'), 'w') as fd:
+def save_best(m: keras.Model, save_folder: str, state={}, model_name='best'):
+    save_model(m, save_folder, model_name + '.h5')
+    with open(os.path.join(save_folder, model_name + '.json'), 'w') as fd:
         json.dump(state, fd)
     dvc.api.make_checkpoint()
 
@@ -82,6 +81,7 @@ def train(trainlist, validationlist=[]):
     m = factory.build_model()
     print(m.summary())
 
+    model_name = params['model_name']
     epochs = params['epochs']
     batch_size = params['batch_size']
     file_batch_size = params['file_batch_size']
@@ -137,7 +137,7 @@ def train(trainlist, validationlist=[]):
         if val_acc > best_acc:
             best_acc = val_acc
             save_best(m, checkpoint_folder, CheckpointState(
-                epoch_index, val_acc, val_loss).asJson())
+                epoch_index, val_acc, val_loss).asJson(), model_name='best_' + model_name)
 
         if (keep_checkpoint_at_every_n_epoch > 0) and (epoch_index % keep_checkpoint_at_every_n_epoch == 0):
             save_checkpoint(m, epoch_index, checkpoint_folder,

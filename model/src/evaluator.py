@@ -2,13 +2,45 @@ import keras
 import generator
 import numpy as np
 import tensorflow as tf
+import argparse
+import sys
+import os
+import sklearn
+import model
+import json
+
+# import infrastructure
+ROOT_SCRIPTS_PATH = os.path.abspath(os.path.join(
+    os.path.dirname(__file__), os.path.pardir, os.path.pardir, 'scripts'))
+sys.path.append(ROOT_SCRIPTS_PATH)
+import utils  # nopep8
+import metadata_extractor  # nopep8
+
+
+def confusion_matrix(preds: np.array, trues: np.array, normalize=False):
+    '''
+    Computes the confusion matrix
+    @param preds: predictions
+    @param trues: expected true labels
+    @param normalize:   True - normalizes confusion matrix
+                        False - raw confusion values
+    @return confusion matrix
+    '''
+    tf_confusion = tf.math.confusion_matrix(
+        np.squeeze(trues), np.squeeze(preds))
+    confusion = tf.constant(tf_confusion).numpy()
+    if (normalize):
+        confusion = confusion/(confusion.astype(np.float).sum(axis=1))
+    return tf.constant(confusion).numpy()
+
 
 class EvaluatorBase:
     def __init__(self) -> None:
         pass
 
-    def evaluate(model: keras.Model, validation_list: list, **kwargs):
+    def evaluate(model: keras.Model, validation_list: list, **kwargs) -> dict:
         raise NotImplementedError
+
 
 class MajorityVotingEvaluator(EvaluatorBase):
     def __init__(self) -> None:
@@ -25,7 +57,8 @@ class MajorityVotingEvaluator(EvaluatorBase):
     def evaluate(self, model: keras.Model, validation_list: list, **kwargs):
         model_input = kwargs['model_input']
         window_overlap = kwargs['window_overlap']
-        gen = generator.DataGenerator(validation_list, 1, model_input, window_overlap)
+        gen = generator.DataGenerator(
+            validation_list, 1, model_input, window_overlap)
 
         labels_true = None
         labels_pred = None
@@ -42,22 +75,45 @@ class MajorityVotingEvaluator(EvaluatorBase):
                 labels_true = np.vstack((labels_true, label_true))
                 labels_pred = np.vstack((labels_pred, label_pred))
 
-        metric = tf.keras.metrics.SparseCategoricalAccuracy()
-        metric.update_state(labels_true, labels_pred)
-        acc = metric.result().numpy()
-        confusion = tf.math.confusion_matrix(np.squeeze(labels_true), np.squeeze(labels_pred))
-        return acc, tf.constant(confusion).numpy()
+        sorted_labels = metadata_extractor.get_labels(
+            metadata_extractor.ALLOWED_CLASSES)
+        output_dict = kwargs.get('output_dict', False)
+        metrics = sklearn.metrics.classification_report(
+            labels_true, labels_pred, target_names=sorted_labels, output_dict=output_dict)
+        return metrics
 
-model_path = 'experiments/2021-12-31_13-21-45/checkpoints/ckpt_00031-00000-00000.h5'
-model = keras.models.load_model(model_path)
 
-validationlist = []
-with open('datasets/testlist.txt', 'r') as f:
-    for line in f.readlines():
-        validationlist.append(line.replace('\n', ''))
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        description='Evaluation script for trained models')
+    parser.add_argument('model', help='path to keras model to be evaluated')
+    parser.add_argument('params', help='yaml for parameters of provided file')
+    parser.add_argument(
+        'filelist', help='path to filelist to be used for evaluation')
+    parser.add_argument('--output', help='Filepath to save output')
+    args = parser.parse_args()
 
-evaluator = MajorityVotingEvaluator()
-acc, confusion = evaluator.evaluate(model, validationlist, model_input=int(1.5*24000), window_overlap=0.5)
+    model_path = args.model
+    print(args)
 
-print(confusion/(confusion.astype(np.float).sum(axis=1)))
-print(acc)
+    params = utils.load_params(args.params)
+    validationlist = utils.load_filelist(args.filelist)
+
+    factory = model.get_factory(params)
+    m = factory.build_model()
+    m.load_weights(model_path)
+
+    evaluator = factory.get_evaluator()
+
+    output_dict = True if args.output is not None else False
+    metrics = evaluator.evaluate(m,
+                                 validationlist,
+                                 model_input=factory.INPUT_SIZE,
+                                 window_overlap=params['window_overlap'],
+                                 output_dict=output_dict)
+
+    if output_dict:
+        with open(args.output, 'w') as fd:
+            json.dump(metrics, fd)
+    else:
+        print(metrics)

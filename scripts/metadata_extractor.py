@@ -13,6 +13,9 @@ def translate_label(translation_map, input_label):
     return translation_map[input_label]
 
 
+def get_labels(translation_map):
+    return [k for k, v in sorted(translation_map.items(), key=lambda item: item[1])]
+
 class UrbanSound8kExtractor:
     def __init__(self, metadata_path) -> None:
         self.metadata_path = metadata_path
