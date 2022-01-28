@@ -4,16 +4,31 @@ stages:
     deps:
     - datasets/preprocessed.tar.xz
     outs:
-    - datasets/samples
+    - datasets/samples/preprocessed
   train:
     cmd: python model/src/train.py
     deps:
-    - datasets/samples/preprocessed/
-    - model/src/train.py
-    - params.yaml
-    metrics:
-      - metrics.json:
-          cache: false
+      - datasets/samples/preprocessed/
+      - model/src/train.py
+      - datasets/trainlist.txt
+      - params.yaml
     outs:
-    - experiments/last/checkpoint.h5:
+    - model/train/checkpoint.h5:
         checkpoint: true
+    - model/train/checkpoint.json:
+        checkpoint: true
+    - model/train/best_${model_name}.h5:
+        checkpoint: true
+    - model/train/best_${model_name}.json:
+        checkpoint: true
+  evaluate:
+    cmd: python model/src/evaluator.py model/train/best_${model_name}.h5 params.yaml datasets/testlist.txt  --output model/eval/metrics.json
+    deps:
+      - model/train/best_${model_name}.h5
+      - model/src/evaluator.py
+      - datasets/testlist.txt
+      - params.yaml
+    metrics:
+      - model/eval/metrics.json:
+          cache: false
+

@@ -1,16 +1,24 @@
-from typing import Sequence
 import keras
 from keras.layers import *
+import evaluator
 
 AVAILABLE_FACTORIES = {}
+
+
 def register_factory(class_type: type):
     AVAILABLE_FACTORIES[class_type.__name__] = class_type
+
+
 class BaseFactory:
     def __init__(self) -> None:
         pass
 
-    def build_model(self, **kwargs):
+    def build_model(self, **kwargs) -> keras.Model:
         raise NotImplementedError()
+
+    def get_evaluator(self, **kwargs) -> evaluator.EvaluatorBase:
+        raise NotImplementedError()
+
 
 class TimeDistributedCnnLstm(BaseFactory):
     def __init__(self, **params) -> None:
@@ -39,12 +47,19 @@ class TimeDistributedCnnLstm(BaseFactory):
         model.compile(loss='categorical_crossentropy',
                       optimizer='adam', metrics=['accuracy'])
         return model
+
+    def get_evaluator(self, **kwargs):
+        return evaluator.MajorityVotingEvaluator()
+
+
 register_factory(TimeDistributedCnnLstm)
+
 
 class SmallCnn(BaseFactory):
     '''
     Useful for pipeline validation, since it runs fast, but it is not intended to learn anything
     '''
+
     def __init__(self, **params) -> None:
         super().__init__()
         self.INPUT_SIZE = int(params.get('input_size', 128))
@@ -66,7 +81,13 @@ class SmallCnn(BaseFactory):
         model.compile(loss='categorical_crossentropy',
                       optimizer='adam', metrics=['accuracy'])
         return model
+
+    def get_evaluator(self, **kwargs):
+        return evaluator.MajorityVotingEvaluator()
+
+
 register_factory(SmallCnn)
+
 
 class Cnn(BaseFactory):
     def __init__(self, **params) -> None:
@@ -87,7 +108,7 @@ class Cnn(BaseFactory):
 
         op = BatchNormalization()
         model.add(op)
-        
+
         op = Conv1D(32, 16, padding='causal')
         model.add(op)
 
@@ -109,7 +130,13 @@ class Cnn(BaseFactory):
         model.compile(loss='categorical_crossentropy',
                       optimizer='adam', metrics=['accuracy'])
         return model
+
+    def get_evaluator(self, **kwargs):
+        return evaluator.MajorityVotingEvaluator()
+
+
 register_factory(Cnn)
+
 
 class WaveNet(BaseFactory):
     def __init__(self, **params) -> None:
@@ -120,12 +147,14 @@ class WaveNet(BaseFactory):
     def build_model(self, **kwargs):
         model = keras.Sequential()
 
-        he_normal = lambda: keras.initializers.HeNormal()
+        def he_normal(): return keras.initializers.HeNormal()
 
-        op = Conv1D(filters=64, kernel_size=64, padding='same', input_shape=(self.INPUT_SIZE, 1), kernel_initializer=he_normal())
+        op = Conv1D(filters=64, kernel_size=64, padding='same', input_shape=(
+            self.INPUT_SIZE, 1), kernel_initializer=he_normal())
         model.add(op)
 
-        op = Conv1D(filters=64, kernel_size=64, padding='same', kernel_initializer=he_normal())
+        op = Conv1D(filters=64, kernel_size=64, padding='same',
+                    kernel_initializer=he_normal())
         model.add(op)
 
         op = MaxPooling1D(pool_size=220)
@@ -137,25 +166,29 @@ class WaveNet(BaseFactory):
         op = Reshape((64, 163, 1))
         model.add(op)
 
-        op = Conv2D(filters=32, kernel_size=(4, 4), padding='same', strides=(1,1), kernel_initializer=he_normal())
+        op = Conv2D(filters=32, kernel_size=(4, 4), padding='same',
+                    strides=(1, 1), kernel_initializer=he_normal())
         model.add(op)
 
-        op = Conv2D(filters=32, kernel_size=(4, 4), padding='same', strides=(1,1), kernel_initializer=he_normal())
+        op = Conv2D(filters=32, kernel_size=(4, 4), padding='same',
+                    strides=(1, 1), kernel_initializer=he_normal())
         model.add(op)
 
-        op = MaxPooling2D(pool_size=(2,2), strides=(2,2))
+        op = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))
         model.add(op)
 
         op = Dropout(rate=0.1)
         model.add(op)
 
-        op = Conv2D(filters=64, kernel_size=(4, 4), padding='same', strides=(1,1), kernel_initializer=he_normal())
+        op = Conv2D(filters=64, kernel_size=(4, 4), padding='same',
+                    strides=(1, 1), kernel_initializer=he_normal())
         model.add(op)
 
-        op = Conv2D(filters=64, kernel_size=(4, 4), padding='same', strides=(1,1), kernel_initializer=he_normal())
+        op = Conv2D(filters=64, kernel_size=(4, 4), padding='same',
+                    strides=(1, 1), kernel_initializer=he_normal())
         model.add(op)
 
-        op = MaxPooling2D(pool_size=(2,2), strides=(2,2))
+        op = MaxPooling2D(pool_size=(2, 2), strides=(2, 2))
         model.add(op)
 
         op = Dropout(rate=0.1)
@@ -171,9 +204,15 @@ class WaveNet(BaseFactory):
         model.compile(loss='categorical_crossentropy',
                       optimizer='adam', metrics=['accuracy'])
         return model
+
+    def get_evaluator(self, **kwargs):
+        return evaluator.MajorityVotingEvaluator()
+
+
 register_factory(WaveNet)
 
-def get_factory(params):
+
+def get_factory(params) -> BaseFactory:
     model_name = params['model_name']
     assert model_name in AVAILABLE_FACTORIES.keys()
     factory_type = AVAILABLE_FACTORIES[model_name]
