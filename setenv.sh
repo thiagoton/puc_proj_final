@@ -27,6 +27,8 @@ CONDA_PREFIX=`conda info --base`
 
 conda activate puc_proj_final_env
 
+# unlock our rclone configuration
+git crypt unlock .local/secret.key
 RCLONE_CONF=`realpath rclone.conf`
 if ! `mount | grep -q .dvc_cache -q`; then
     echo -n "[LOG] Mounting cache..."
