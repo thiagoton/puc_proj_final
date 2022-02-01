@@ -23,9 +23,8 @@ if [[ ! -z $PUC_PROJ_ENV_SET ]]; then
 fi
 
 install_environment
-CONDA_PREFIX=`conda info --base`
-
 conda activate puc_proj_final_env
+CONDA_PREFIX=`conda info --base`
 
 # unlock our rclone configuration
 git crypt unlock .local/secret.key
