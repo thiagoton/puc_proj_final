@@ -140,6 +140,7 @@ dependencies:
   - python-flatbuffers=1.12=pyhd8ed1ab_1
   - python_abi=3.9=2_cp39
   - pyu2f=0.1.5=pyhd8ed1ab_0
+  - rclone=1.57.0=h519d9b9_0
   - re2=2021.11.01=h9c3ff4c_0
   - readline=8.1=h46c0cb4_0
   - requests=2.26.0=pyhd8ed1ab_1
@@ -237,4 +238,3 @@ dependencies:
     - wcwidth==0.2.5
     - xmltodict==0.12.0
     - zc-lockfile==2.0
-prefix: /home/thiago/work/env/miniconda3/envs/puc_proj_final_env
