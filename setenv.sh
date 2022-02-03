@@ -32,10 +32,12 @@ if [[ ! -f "$SECRET_KEY_FILE" ]]; then
     echo "[ERR] $SECRET_KEY_FILE does not exist. Please, provide a valid secret file in order to continue"
     return
 fi
+
 git crypt unlock $SECRET_KEY_FILE
 RCLONE_CONF=`realpath rclone.conf`
 if ! `mount | grep -q .dvc_cache -q`; then
     echo -n "[LOG] Mounting cache..."
+    mkdir -p .dvc_cache
     rclone --config $RCLONE_CONF mount --daemon --vfs-cache-mode full puc_data_bucket:/files/dvc_cache .dvc_cache
     if [[ $? -eq 0 ]]; then
         echo "OK"
