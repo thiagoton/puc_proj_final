@@ -28,7 +28,7 @@ CONDA_PREFIX=`conda info --base`
 
 # unlock our rclone configuration
 SECRET_KEY_FILE=".local/secret.key"
-if [[ -f "$SECRET_KEY_FILE" ]]; then
+if [[ ! -f "$SECRET_KEY_FILE" ]]; then
     echo "[ERR] $SECRET_KEY_FILE does not exist. Please, provide a valid secret file in order to continue"
     return
 fi
