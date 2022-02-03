@@ -27,7 +27,12 @@ conda activate puc_proj_final_env
 CONDA_PREFIX=`conda info --base`
 
 # unlock our rclone configuration
-git crypt unlock .local/secret.key
+SECRET_KEY_FILE=".local/secret.key"
+if [[ -f "$SECRET_KEY_FILE" ]]; then
+    echo "[ERR] $SECRET_KEY_FILE does not exist. Please, provide a valid secret file in order to continue"
+    return
+fi
+git crypt unlock $SECRET_KEY_FILE
 RCLONE_CONF=`realpath rclone.conf`
 if ! `mount | grep -q .dvc_cache -q`; then
     echo -n "[LOG] Mounting cache..."
