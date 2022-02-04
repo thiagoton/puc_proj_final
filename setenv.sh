@@ -3,7 +3,7 @@
 install_environment() {
     if ! command -v conda &> /dev/null
     then
-        CONDA_PREFIX=`realpath ~/miniconda3`
+        CONDA_PREFIX=$(realpath ~/miniconda3)
         wget https://repo.anaconda.com/miniconda/Miniconda3-py39_4.9.2-Linux-x86_64.sh
         chmod +x Miniconda3-py39_4.9.2-Linux-x86_64.sh
         bash ./Miniconda3-py39_4.9.2-Linux-x86_64.sh -b -f -p $CONDA_PREFIX
@@ -24,7 +24,7 @@ fi
 
 install_environment
 conda activate puc_proj_final_env
-CONDA_PREFIX=`conda info --base`
+CONDA_PREFIX=$(conda info --base)
 
 # unlock our rclone configuration
 SECRET_KEY_FILE=".local/secret.key"
@@ -34,24 +34,31 @@ if [[ ! -f "$SECRET_KEY_FILE" ]]; then
 fi
 
 git crypt unlock $SECRET_KEY_FILE
-RCLONE_CONF=`realpath rclone.conf`
-if ! `mount | grep -q .dvc_cache -q`; then
-    echo -n "[LOG] Mounting cache..."
-    mkdir -p .dvc_cache
-    rclone --config $RCLONE_CONF mount --daemon --vfs-cache-mode full puc_data_bucket:/files/dvc_cache .dvc_cache
-    if [[ $? -eq 0 ]]; then
-        echo "OK"
+RCLONE_CONF=$(realpath rclone.conf)
+if ! mount | grep -q .dvc_cache -q; then
+    rm -rf .dvc_cache
+    if [[ -z $DVC_CACHE_PATH ]]; then
+        echo -n "[LOG] Mounting cache..."
+        mkdir -p .dvc_cache
+        rclone --config $RCLONE_CONF mount --daemon --vfs-cache-mode full puc_data_bucket:/files/dvc_cache .dvc_cache
+        if [[ $? -eq 0 ]]; then
+            echo "OK"
+        else
+            echo "[ERR] Failed mounting cache"
+            return
+        fi
     else
-        echo "[ERR] Failed mounting cache"
-        return
+        echo "[LOG] Using local cache from '$DVC_CACHE_PATH'"
+        ln -s "$DVC_CACHE_PATH" .dvc_cache
     fi
 else
     echo "[LOG] Cache is already mounted"
 fi
 
-export PROJ_ROOT=`pwd`
-export CONDA_PREFIX=$CONDA_PREFIX
-export RCLONE_CONF=$RCLONE_CONF
+PROJ_ROOT=$(pwd)
+export PROJ_ROOT="$PROJ_ROOT"
+export CONDA_PREFIX="$CONDA_PREFIX"
+export RCLONE_CONF="$RCLONE_CONF"
 
 # environment is ready
 export PUC_PROJ_ENV_SET=1
