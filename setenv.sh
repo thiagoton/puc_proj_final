@@ -26,6 +26,9 @@ install_environment
 conda activate puc_proj_final_env
 CONDA_PREFIX=$(conda info --base)
 
+# fix: dvc failed to set cache type
+mkdir -p datasets/samples
+
 # unlock our rclone configuration
 SECRET_KEY_FILE=".local/secret.key"
 if [[ ! -f "$SECRET_KEY_FILE" ]]; then
