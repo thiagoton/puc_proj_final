@@ -10,6 +10,7 @@ import datetime
 from generator import *
 import json
 import dvc.api
+import time
 
 # import infrastructure
 ROOT_SCRIPTS_PATH = os.path.abspath(os.path.join(
@@ -105,6 +106,7 @@ def train(trainlist, validationlist=[]):
                                      file_batch_size,
                                      factory.INPUT_SIZE, window_overlap)
     best_acc = 0
+    cummulative_time = 0
     for epoch_index in range(epochs):
         print('epoch: %d' % (epoch_index))
         val_data = None
@@ -123,12 +125,16 @@ def train(trainlist, validationlist=[]):
 
             val_data_gen.on_epoch_end()
 
+        t0 = time.time()
         history = m.fit(data_gen,
                         callbacks=[tensorboard_cb],
                         initial_epoch=epoch_index,
                         epochs=epoch_index+1,
                         validation_data=val_data,
                         verbose=1)
+        tf = time.time()
+        cummulative_time += tf - t0
+        print("Epoch took %.3fs (avg=%.3fs)" % (tf - t0, cummulative_time/(epoch_index + 1)))
         acc = history.history['accuracy'][0]
         loss = history.history['loss'][0]
         val_acc = history.history['val_accuracy'][0]
