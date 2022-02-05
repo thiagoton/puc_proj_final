@@ -147,7 +147,7 @@ class WaveNet(BaseFactory):
     def build_model(self, **kwargs):
         model = tf.keras.Sequential()
 
-        def he_normal(): return tf.keras.initializers.HeNormal()
+        def he_normal(): return tf.keras.initializers.he_normal()
 
         op = Conv1D(filters=64, kernel_size=64, padding='same', input_shape=(
             self.INPUT_SIZE, 1), kernel_initializer=he_normal())

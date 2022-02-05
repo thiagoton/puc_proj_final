@@ -1,0 +1,13 @@
+name: puc_proj_final_env
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - python=3.8
+  - tensorflow-gpu=2.2
+  - keras
+  - librosa
+  - dvc=2.9
+  - dvc-ssh
+  - rclone
+  - git-crypt
