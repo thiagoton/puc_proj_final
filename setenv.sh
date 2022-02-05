@@ -22,7 +22,7 @@ install_environment() {
     then
         conda env create -f $CONDA_ENV_FILE
     else
-        conda env update --satisfied-skip-solve -n puc_proj_final_env -f $CONDA_ENV_FILE
+        conda env update -n puc_proj_final_env -f $CONDA_ENV_FILE
     fi
 }
 
