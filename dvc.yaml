@@ -4,7 +4,7 @@ stages:
     deps:
     - datasets/preprocessed.tar.xz
     outs:
-    - datasets/samples/preprocessed
+    - datasets/samples/preprocessed/
   train:
     cmd: python model/src/train.py
     deps:
