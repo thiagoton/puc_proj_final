@@ -1,4 +1,4 @@
-import keras
+import tensorflow as tf
 from numpy.lib import utils
 from tensorflow.keras import callbacks
 import model
@@ -53,13 +53,13 @@ def prepare_experiment(experiment_tag) -> tuple():
     return experiment_folder, checkpoint_folder, logs_folder
 
 
-def save_model(m: keras.Model, save_folder: str, model_name: str):
+def save_model(m: tf.keras.Model, save_folder: str, model_name: str):
     model_path = os.path.join(save_folder, model_name)
     m.save(model_path)
     return model_path
 
 
-def save_checkpoint(m: keras.Model, epoch: int, checkpoint_folder: str, state={}):
+def save_checkpoint(m: tf.keras.Model, epoch: int, checkpoint_folder: str, state={}):
     checkpoint_name = 'checkpoint.h5'
     save_model(m, checkpoint_folder, checkpoint_name)
     with open(os.path.join(checkpoint_folder, 'checkpoint.json'), 'w') as fd:
@@ -67,7 +67,7 @@ def save_checkpoint(m: keras.Model, epoch: int, checkpoint_folder: str, state={}
     dvc.api.make_checkpoint()
 
 
-def save_best(m: keras.Model, save_folder: str, state={}, model_name='best'):
+def save_best(m: tf.keras.Model, save_folder: str, state={}, model_name='best'):
     save_model(m, save_folder, model_name + '.h5')
     with open(os.path.join(save_folder, model_name + '.json'), 'w') as fd:
         json.dump(state, fd)
@@ -75,7 +75,7 @@ def save_best(m: keras.Model, save_folder: str, state={}, model_name='best'):
 
 
 def train(trainlist, validationlist=[]):
-    keras.backend.clear_session()
+    tf.keras.backend.clear_session()
     params = utils.load_params()
     factory = model.get_factory(params)
     m = factory.build_model()
@@ -124,7 +124,6 @@ def train(trainlist, validationlist=[]):
             val_data_gen.on_epoch_end()
 
         history = m.fit(data_gen,
-                        batch_size=batch_size,
                         callbacks=[tensorboard_cb],
                         initial_epoch=epoch_index,
                         epochs=epoch_index+1,
