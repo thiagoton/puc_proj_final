@@ -6,3 +6,5 @@ datasets/samples/raw
 __pycache__/*
 experiments/*
 /experiments
+.local/
+/.dvc_cache
