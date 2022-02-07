@@ -1,5 +1,5 @@
-import keras
-from keras.layers import *
+import tensorflow as tf
+from tensorflow.keras.layers import *
 import evaluator
 
 AVAILABLE_FACTORIES = {}
@@ -13,7 +13,7 @@ class BaseFactory:
     def __init__(self) -> None:
         pass
 
-    def build_model(self, **kwargs) -> keras.Model:
+    def build_model(self, **kwargs) -> tf.keras.Model:
         raise NotImplementedError()
 
     def get_evaluator(self, **kwargs) -> evaluator.EvaluatorBase:
@@ -27,7 +27,7 @@ class TimeDistributedCnnLstm(BaseFactory):
         self.TIME_WINDOW_SIZE = int(params.get('time_window_size', 5))
 
     def build_model(self, **kwargs):
-        model = keras.Sequential()
+        model = tf.keras.Sequential()
 
         op = Conv1D(32, 16, strides=1, padding='causal')
         model.add(TimeDistributed(op, input_shape=(
@@ -65,7 +65,7 @@ class SmallCnn(BaseFactory):
         self.INPUT_SIZE = int(params.get('input_size', 128))
 
     def build_model(self, **kwargs):
-        model = keras.Sequential()
+        model = tf.keras.Sequential()
 
         op = Conv1D(5, 5, padding='causal', input_shape=(self.INPUT_SIZE, 1))
         model.add(op)
@@ -95,7 +95,7 @@ class Cnn(BaseFactory):
         self.INPUT_SIZE = int(params.get('input_size', 128))
 
     def build_model(self, **kwargs):
-        model = keras.Sequential()
+        model = tf.keras.Sequential()
 
         op = Conv1D(32, 16, padding='causal', input_shape=(self.INPUT_SIZE, 1))
         model.add(op)
@@ -145,9 +145,9 @@ class WaveNet(BaseFactory):
         self.INPUT_SIZE = int(input_window * 24000)
 
     def build_model(self, **kwargs):
-        model = keras.Sequential()
+        model = tf.keras.Sequential()
 
-        def he_normal(): return keras.initializers.HeNormal()
+        def he_normal(): return tf.keras.initializers.he_normal()
 
         op = Conv1D(filters=64, kernel_size=64, padding='same', input_shape=(
             self.INPUT_SIZE, 1), kernel_initializer=he_normal())

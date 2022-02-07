@@ -9,11 +9,20 @@ install_environment() {
         bash ./Miniconda3-py39_4.9.2-Linux-x86_64.sh -b -f -p $CONDA_PREFIX
     fi
 
+    # select appropriate env for gpu/cpu
+    if ! command -v nvidia-smi &> /dev/null; then
+        echo "[LOG] Setting CPU environment"
+        CONDA_ENV_FILE="environment.yml"
+    else
+        echo "[LOG] Setting GPU environment"
+        CONDA_ENV_FILE="environment-gpu.yml"
+    fi
+
     if ! conda env list | grep "puc_proj_final_env" -q
     then
-        conda env create -f environment.yml
+        conda env create -f $CONDA_ENV_FILE
     else
-        conda env update -n puc_proj_final_env -f environment.yml
+        conda env update -n puc_proj_final_env -f $CONDA_ENV_FILE
     fi
 }
 

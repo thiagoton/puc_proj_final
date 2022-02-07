@@ -1,4 +1,4 @@
-import keras
+import tensorflow as tf
 import generator
 import numpy as np
 import tensorflow as tf
@@ -38,7 +38,7 @@ class EvaluatorBase:
     def __init__(self) -> None:
         pass
 
-    def evaluate(model: keras.Model, validation_list: list, **kwargs) -> dict:
+    def evaluate(model: tf.keras.Model, validation_list: list, **kwargs) -> dict:
         raise NotImplementedError
 
 
@@ -54,7 +54,7 @@ class MajorityVotingEvaluator(EvaluatorBase):
 
         return labels[max_id], counts[max_id]
 
-    def evaluate(self, model: keras.Model, validation_list: list, **kwargs):
+    def evaluate(self, model: tf.keras.Model, validation_list: list, **kwargs):
         model_input = kwargs['model_input']
         window_overlap = kwargs['window_overlap']
         gen = generator.DataGenerator(

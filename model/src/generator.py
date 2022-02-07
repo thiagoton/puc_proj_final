@@ -1,4 +1,3 @@
-import keras
 import numpy as np
 import os
 import sys
@@ -81,7 +80,7 @@ def prepare_batch(filelist, batch_size, batch_index, dnn_input_size, window_over
     return X, Y
 
 
-class DataGenerator(keras.utils.data_utils.Sequence):
+class DataGenerator(tf.keras.utils.Sequence):
     def __init__(self, file_list: list, file_batch_size: int, input_size: int, window_overlap: float) -> None:
         super().__init__()
         self.file_list = file_list

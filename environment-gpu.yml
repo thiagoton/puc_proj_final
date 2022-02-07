@@ -4,7 +4,7 @@ channels:
   - defaults
 dependencies:
   - python=3.8
-  - tensorflow=2.2
+  - tensorflow-gpu=2.2
   - keras
   - librosa
   - dvc=2.9
