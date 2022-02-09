@@ -117,6 +117,20 @@ class RandomWindowAudioGenerator:
         self.window_size = window_size
         self.max_resample_file = max_resample_file
 
+    def __adjust_audio_length(self, audio) -> np.array:
+        len_audio = len(audio)
+        if self.window_size <= len_audio:
+            # no need to adjust size
+            return audio
+
+        size_diff = self.window_size - len_audio + 10 # make a fixed increment, so window size is always smaller than audio length
+        prepend_size = np.random.randint(0, size_diff)
+        append_size = size_diff - prepend_size
+
+        audio = np.concatenate((audio, np.zeros((append_size,))))
+        audio = np.concatenate((np.zeros((prepend_size,)), audio))
+        return audio
+
     def __select_window(self, available_size) -> tuple:
         max_start_idx = available_size - self.window_size - 1
         start_idx = np.random.randint(0, max_start_idx)
@@ -132,9 +146,8 @@ class RandomWindowAudioGenerator:
                 label = metadata_extractor.translate_label(
                         metadata_extractor.ALLOWED_CLASSES, metadata.data()['label'])
 
+                audio = self.__adjust_audio_length(audio)
                 start, end = self.__select_window(len(audio))
-                if end > len(audio):
-                    audio = np.concatenate((audio, np.zeros((end - len(audio),))))
 
                 label_onehot = np.zeros((3,))
                 label_onehot[label] = 1
