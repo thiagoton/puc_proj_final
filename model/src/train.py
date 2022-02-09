@@ -100,6 +100,8 @@ def train(trainlist, validationlist=[]):
 
     data_gen = DataGenerator(trainlist, file_batch_size,
                              factory.INPUT_SIZE, window_overlap)
+
+    data_loader = DatasetLoader(trainlist, batch_size, factory.INPUT_SIZE, window_overlap).dataset()
     val_data_gen = None
     if len(validationlist):
         val_data_gen = DataGenerator(validationlist,
@@ -126,7 +128,7 @@ def train(trainlist, validationlist=[]):
             val_data_gen.on_epoch_end()
 
         t0 = time.time()
-        history = m.fit(data_gen,
+        history = m.fit(data_loader,
                         callbacks=[tensorboard_cb],
                         initial_epoch=epoch_index,
                         epochs=epoch_index+1,

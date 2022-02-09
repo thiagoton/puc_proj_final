@@ -67,7 +67,10 @@ class SmallCnn(BaseFactory):
     def build_model(self, **kwargs):
         model = tf.keras.Sequential()
 
-        op = Conv1D(5, 5, padding='causal', input_shape=(self.INPUT_SIZE, 1))
+        op = Input(shape=(self.INPUT_SIZE, 1))
+        model.add(op)
+
+        op = Conv1D(5, 5, padding='causal')
         model.add(op)
 
         op = MaxPooling1D(pool_size=2)
