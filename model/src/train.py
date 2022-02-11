@@ -98,9 +98,6 @@ def train(trainlist, validationlist=[]):
     else:
         tensorboard_cb = callbacks.TensorBoard(log_dir=logs_folder)
 
-    data_gen = DataGenerator(trainlist, file_batch_size,
-                             factory.INPUT_SIZE, window_overlap)
-
     data_loader = DatasetLoader(trainlist, batch_size, factory.INPUT_SIZE, window_overlap).dataset()
     val_data_gen = None
     if len(validationlist):
