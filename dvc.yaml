@@ -2,33 +2,37 @@ stages:
   decompress_dataset:
     cmd: sh datasets/scripts/decompress_dataset.sh
     deps:
-    - datasets/preprocessed.tar.xz
+        - datasets/preprocessed.tar.xz
     outs:
-    - datasets/samples/preprocessed/
+        - datasets/samples/preprocessed/
   train:
     cmd: python model/src/train.py
     deps:
-      - datasets/samples/preprocessed/
-      - model/src/train.py
-      - datasets/trainlist.txt
-      - params.yaml
+        - datasets/samples/preprocessed/
+        - model/src/train.py
+        - datasets/trainlist.txt
+        - params.yaml
     outs:
-    - model/train/checkpoint.h5:
-        checkpoint: true
-    - model/train/checkpoint.json:
-        checkpoint: true
-    - model/train/best_${model_name}.h5:
-        checkpoint: true
-    - model/train/best_${model_name}.json:
-        checkpoint: true
-  evaluate:
-    cmd: python model/src/evaluator.py model/train/best_${model_name}.h5 params.yaml datasets/testlist.txt  --output model/eval/metrics.json
-    deps:
-      - model/train/best_${model_name}.h5
-      - model/src/evaluator.py
-      - datasets/testlist.txt
-      - params.yaml
+        - model/train/${model_name}/checkpoint.h5:
+            checkpoint: true
+        - model/train/${model_name}/best.h5:
+            checkpoint: true
     metrics:
-      - model/eval/metrics.json:
-          cache: false
+        - model/train/${model_name}/best.json:
+            checkpoint: true
+        - model/train/${model_name}/checkpoint.json:
+            checkpoint: true
+    plots:
+        - model/train/${model_name}/plot.csv:
+            cache: false
+  evaluate:
+    cmd: python model/src/evaluator.py model/train/${model_name}/best.h5 params.yaml datasets/testlist.txt  --output model/eval/${model_name}/metrics.json
+    deps:
+        - model/train/${model_name}/best.h5
+        - model/src/evaluator.py
+        - datasets/testlist.txt
+        - params.yaml
+    metrics:
+        - model/eval/${model_name}/metrics.json:
+            cache: false
 

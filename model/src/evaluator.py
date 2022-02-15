@@ -113,6 +113,8 @@ if __name__ == '__main__':
                                  output_dict=output_dict)
 
     if output_dict:
+        out_dir = os.path.dirname(args.output)
+        os.makedirs(out_dir, exist_ok=True)
         with open(args.output, 'w') as fd:
             json.dump(metrics, fd)
     else:

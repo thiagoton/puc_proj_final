@@ -11,6 +11,7 @@ from generator import *
 import json
 import dvc.api
 import time
+import logger
 
 # import infrastructure
 ROOT_SCRIPTS_PATH = os.path.abspath(os.path.join(
@@ -35,7 +36,7 @@ class CheckpointState:
         return {'epoch': self.epoch, 'accuracy': self.acc, 'loss': self.loss}
 
 
-def prepare_experiment(experiment_tag) -> tuple():
+def prepare_experiment(experiment_tag, model_name) -> tuple():
     '''
     Setup the folder structure needed for the training
     return: experiment_folder, checkpoint_folder, logs_folder
@@ -48,31 +49,10 @@ def prepare_experiment(experiment_tag) -> tuple():
     os.makedirs(logs_folder)
 
     checkpoint_folder = os.path.join(
-        utils.make_path_absolute('model'), 'train')
+        utils.make_path_absolute('model'), 'train', model_name)
     os.makedirs(checkpoint_folder, exist_ok=True)
 
     return experiment_folder, checkpoint_folder, logs_folder
-
-
-def save_model(m: tf.keras.Model, save_folder: str, model_name: str):
-    model_path = os.path.join(save_folder, model_name)
-    m.save(model_path)
-    return model_path
-
-
-def save_checkpoint(m: tf.keras.Model, epoch: int, checkpoint_folder: str, state={}):
-    checkpoint_name = 'checkpoint.h5'
-    save_model(m, checkpoint_folder, checkpoint_name)
-    with open(os.path.join(checkpoint_folder, 'checkpoint.json'), 'w') as fd:
-        json.dump(state, fd)
-    dvc.api.make_checkpoint()
-
-
-def save_best(m: tf.keras.Model, save_folder: str, state={}, model_name='best'):
-    save_model(m, save_folder, model_name + '.h5')
-    with open(os.path.join(save_folder, model_name + '.json'), 'w') as fd:
-        json.dump(state, fd)
-    dvc.api.make_checkpoint()
 
 
 def train(trainlist, validationlist=[]):
@@ -90,7 +70,9 @@ def train(trainlist, validationlist=[]):
     window_overlap = params['window_overlap']
     experiment_tag = datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
     experiment_folder, checkpoint_folder, logs_folder = prepare_experiment(
-        experiment_tag)
+        experiment_tag, model_name)
+
+    log = logger.Logger(checkpoint_folder)
 
     if len(validationlist):
         tensorboard_cb = callbacks.TensorBoard(
@@ -131,21 +113,38 @@ def train(trainlist, validationlist=[]):
                         epochs=epoch_index+1,
                         validation_data=val_data,
                         verbose=1)
+        
+        do_checkpoint = False
         t1 = time.time()
-        cummulative_time += t1 - t0
-        print("Epoch took %.3fs (avg=%.3fs)" % (t1 - t0, cummulative_time/(epoch_index + 1)))
+        epoch_time = t1 - t0
+        cummulative_time += epoch_time
+        epoch_avg_time = cummulative_time/(epoch_index + 1)
+        print("Epoch took %.3fs (avg=%.3fs)" % (epoch_time, epoch_avg_time))
         acc = history.history['accuracy'][0]
         loss = history.history['loss'][0]
         val_acc = history.history['val_accuracy'][0]
         val_loss = history.history['val_loss'][0]
+
+        log.log_timeseries('epoch_time', epoch_time, epoch_index)
+        log.log_timeseries('epoch_avg_time', epoch_avg_time, epoch_index)
+        log.log_timeseries('accuracy', acc, epoch_index)
+        log.log_timeseries('loss', loss, epoch_index)
+        log.log_timeseries('val_acc', val_acc, epoch_index)
+        log.log_timeseries('val_loss', val_loss, epoch_index)
+
         if val_acc > best_acc:
             best_acc = val_acc
-            save_best(m, checkpoint_folder, CheckpointState(
-                epoch_index, val_acc, val_loss).asJson(), model_name='best_' + model_name)
+            log.save_model(m, 'best.h5')
+            log.log_metric(CheckpointState(epoch_index, val_acc, val_loss).asJson(), filename='best.json')
+            do_checkpoint = True
 
         if (keep_checkpoint_at_every_n_epoch > 0) and (epoch_index % keep_checkpoint_at_every_n_epoch == 0):
-            save_checkpoint(m, epoch_index, checkpoint_folder,
-                            CheckpointState(epoch_index, acc, loss).asJson())
+            log.save_model(m, 'checkpoint.h5')
+            log.log_metric(CheckpointState(epoch_index, acc, loss).asJson(), filename='checkpoint.json')
+            do_checkpoint = True
+
+        if do_checkpoint:
+            dvc.api.make_checkpoint()
 
 
 trainlist = utils.load_filelist('datasets/trainlist.txt')
