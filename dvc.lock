@@ -35,14 +35,14 @@ stages:
       md5: 54ba51f35263a0af4575f2d2484e09cb
       size: 73
     - path: model/train/WaveNet/checkpoint.h5
-      md5: 1f661245c05abce32e3e3e3dbcef7b8b
+      md5: ce9aca83d5b6f2aabae01ea797455b38
       size: 256729104
     - path: model/train/WaveNet/checkpoint.json
-      md5: 1675220a5cfe403fc4dbebe5e3a24389
+      md5: bd5c1be0b27213ec930aa8295bb505ee
       size: 73
     - path: model/train/WaveNet/plot.csv
-      md5: 2ae1c95f5d781e5c9f8c85329804eb63
-      size: 4899
+      md5: ddee21ad005c93c69c12ff8d7a8d1540
+      size: 5146
   evaluate:
     cmd: python model/src/evaluator.py model/train/WaveNet/best.h5 params.yaml datasets/testlist.txt  --output
       model/eval/WaveNet/metrics.json 2>&1 | tee eval.log
