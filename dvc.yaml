@@ -6,7 +6,7 @@ stages:
     outs:
         - datasets/samples/preprocessed/
   train:
-    cmd: python model/src/train.py
+    cmd: python model/src/train.py 2>&1 | tee train.log
     deps:
         - datasets/samples/preprocessed/
         - model/src/train.py
@@ -26,7 +26,7 @@ stages:
         - model/train/${model_name}/plot.csv:
             cache: false
   evaluate:
-    cmd: python model/src/evaluator.py model/train/${model_name}/best.h5 params.yaml datasets/testlist.txt  --output model/eval/${model_name}/metrics.json
+    cmd: python model/src/evaluator.py model/train/${model_name}/best.h5 params.yaml datasets/testlist.txt  --output model/eval/${model_name}/metrics.json 2>&1 | tee eval.log
     deps:
         - model/train/${model_name}/best.h5
         - model/src/evaluator.py
