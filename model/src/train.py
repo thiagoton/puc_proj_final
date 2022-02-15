@@ -80,7 +80,7 @@ def train(trainlist, validationlist=[]):
     else:
         tensorboard_cb = callbacks.TensorBoard(log_dir=logs_folder)
 
-    data_loader = DatasetLoader(trainlist, batch_size, factory.INPUT_SIZE, window_overlap).dataset()
+    data_loader = DatasetLoader(trainlist, batch_size, factory.INPUT_SIZE, window_overlap)
     val_data_gen = None
     if len(validationlist):
         val_data_gen = DataGenerator(validationlist,
@@ -107,13 +107,14 @@ def train(trainlist, validationlist=[]):
             val_data_gen.on_epoch_end()
 
         t0 = time.time()
-        history = m.fit(data_loader,
+        history = m.fit(data_loader.dataset(),
                         callbacks=[tensorboard_cb],
                         initial_epoch=epoch_index,
                         epochs=epoch_index+1,
                         validation_data=val_data,
                         verbose=1)
-        
+        data_loader.on_epoch_end()
+
         do_checkpoint = False
         t1 = time.time()
         epoch_time = t1 - t0
