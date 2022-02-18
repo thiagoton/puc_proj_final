@@ -1,0 +1,65 @@
+schema: '2.0'
+stages:
+  decompress_dataset:
+    cmd: sh datasets/scripts/decompress_dataset.sh
+    deps:
+    - path: datasets/preprocessed.tar.xz
+      md5: 42d49fa27c18de67c761b82714a33efc
+      size: 2283776000
+    outs:
+    - path: datasets/samples/preprocessed/
+      md5: 65e73a0517c160945022ac8539d14878.dir
+      size: 2270042409
+      nfiles: 17464
+  train:
+    cmd: python model/src/train.py 2>&1 | tee train.log
+    deps:
+    - path: datasets/samples/preprocessed/
+      md5: 65e73a0517c160945022ac8539d14878.dir
+      size: 2270042409
+      nfiles: 17464
+    - path: datasets/trainlist.txt
+      md5: 0db2323259560a4204169138078474d0
+      size: 60300
+    - path: model/src/train.py
+      md5: fdb002e9bf35ba582e5b2b31ee6eb410
+      size: 5267
+    - path: params.yaml
+      md5: d6b5e49dadc53c9ebae4d67db8839bc6
+      size: 437
+    outs:
+    - path: model/train/WaveNet/best.h5
+      md5: 779946153ffb418af673443df1aa8011
+      size: 256729104
+    - path: model/train/WaveNet/best.json
+      md5: 0bcd93132d414f41630710e4e90edb9a
+      size: 74
+    - path: model/train/WaveNet/checkpoint.h5
+      md5: f1cfa6f021b7a50dc7d8838dfa4b2236
+      size: 256729104
+    - path: model/train/WaveNet/checkpoint.json
+      md5: 2e3623d841edd5c61879876e7be3058d
+      size: 74
+    - path: model/train/WaveNet/plot.csv
+      md5: cee7910b3ba0f799e2c94c5ec06d75d7
+      size: 24419
+  evaluate:
+    cmd: python model/src/evaluator.py model/train/WaveNet/best.h5 params.yaml datasets/testlist.txt  --output
+      model/eval/WaveNet/metrics.json 2>&1 | tee eval.log
+    deps:
+    - path: datasets/testlist.txt
+      md5: 619cb64e8c239ab15b9cb9f922861dd5
+      size: 25728
+    - path: model/src/evaluator.py
+      md5: 3203645e9a17065d863e7ca9107071dd
+      size: 4111
+    - path: model/train/WaveNet/best.h5
+      md5: 779946153ffb418af673443df1aa8011
+      size: 256729104
+    - path: params.yaml
+      md5: d6b5e49dadc53c9ebae4d67db8839bc6
+      size: 437
+    outs:
+    - path: model/eval/WaveNet/metrics.json
+      md5: faa502ab2298dd1e0632e94a686d96da
+      size: 622
