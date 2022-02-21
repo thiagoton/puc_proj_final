@@ -15,4 +15,4 @@ After it finishes, you will be able to use the repo. Note the setup procedure mu
 
 # Known Issues
 ## **ERROR: unexpected error - 'cannot stash changes - there is nothing to stash.'**
-Sometimes, dvc+git gets into a inconsistent state. If such behavior occurs, a way to workaround if by make a small modification at a single file that is tracked by git (ex: add a _space_ into this README). This way is known to overcome such problem
+Sometimes, dvc+git gets into an inconsistent state. If such behavior occurs, a way to workaround it is by making a small modification at a single file that is tracked by git (ex: add a _space_ into this README). This way is known to overcome such problem
