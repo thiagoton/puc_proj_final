@@ -161,14 +161,19 @@ class DatasetLoader:
         self.window_overlap = window_overlap
 
     def dataset(self) -> tf.data.Dataset:
-        gen = RandomWindowAudioGenerator(self.file_list, self.input_size)
-        gen.next()
+        max_resample_file = 5
+        gen = RandomWindowAudioGenerator(
+            self.file_list, self.input_size, max_resample_file=max_resample_file)
 
         ds = tf.data.Dataset.from_generator(gen.next,
-                                            output_types=(tf.float32, tf.int32),
-                                            output_shapes=(tf.TensorShape([self.input_size, 1]), tf.TensorShape([3,])))
-        ds = ds.shuffle(buffer_size=self.batch_size*5)
+                                            output_types=(
+                                                tf.float32, tf.int32),
+                                            output_shapes=(tf.TensorShape([self.input_size, 1]), tf.TensorShape([3, ])))
+        ds = ds.shuffle(buffer_size=self.batch_size*(max_resample_file*10))
         ds = ds.batch(self.batch_size)
         ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)
 
         return ds
+
+    def on_epoch_end(self):
+        random.shuffle(self.file_list)
