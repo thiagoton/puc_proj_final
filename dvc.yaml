@@ -1,10 +1,4 @@
 stages:
-  decompress_dataset:
-    cmd: sh datasets/scripts/decompress_dataset.sh
-    deps:
-        - datasets/preprocessed.tar.xz
-    outs:
-        - datasets/samples/preprocessed/
   train:
     cmd: python model/src/train.py 2>&1 | tee train.log
     deps:
