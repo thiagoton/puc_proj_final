@@ -29,6 +29,6 @@ stages:
     metrics:
         - model/eval/${model_name}/metrics.json:
             cache: false
-        - model/eval/${model_name}/errors.csv:
+        - model/eval/${model_name}/result.csv:
             cache: false
 
