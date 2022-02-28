@@ -75,12 +75,20 @@ class MajorityVotingEvaluator(EvaluatorBase):
                 labels_true = np.vstack((labels_true, label_true))
                 labels_pred = np.vstack((labels_pred, label_pred))
 
-        sorted_labels = metadata_extractor.get_labels(
+        labels_pred = np.squeeze(labels_pred)
+        labels_true = np.squeeze(labels_true)
+
+        ordered_labels = metadata_extractor.get_labels(
             metadata_extractor.ALLOWED_CLASSES)
         output_dict = kwargs.get('output_dict', False)
         metrics = sklearn.metrics.classification_report(
-            labels_true, labels_pred, target_names=sorted_labels, output_dict=output_dict)
-        return metrics
+            labels_true, labels_pred, target_names=ordered_labels, output_dict=output_dict)
+
+        err_mask = labels_pred != labels_true
+        err_samples = list(np.array(validation_list)[err_mask])
+        err_preds = [ordered_labels[x] for x in labels_pred[err_mask]]
+        err_true = [ordered_labels[x] for x in labels_true[err_mask]]
+        return metrics, err_samples, err_preds, err_true
 
 
 if __name__ == '__main__':
@@ -90,7 +98,7 @@ if __name__ == '__main__':
     parser.add_argument('params', help='yaml for parameters of provided file')
     parser.add_argument(
         'filelist', help='path to filelist to be used for evaluation')
-    parser.add_argument('--output', help='Filepath to save output')
+    parser.add_argument('--output', help='Path to save outputs')
     args = parser.parse_args()
 
     model_path = args.model
@@ -106,16 +114,26 @@ if __name__ == '__main__':
     evaluator = factory.get_evaluator()
 
     output_dict = True if args.output is not None else False
-    metrics = evaluator.evaluate(m,
-                                 validationlist,
-                                 model_input=factory.INPUT_SIZE,
-                                 window_overlap=params['window_overlap'],
-                                 output_dict=output_dict)
+    metrics, err_samples, err_pred, err_true = evaluator.evaluate(m,
+                                                                  validationlist,
+                                                                  model_input=factory.INPUT_SIZE,
+                                                                  window_overlap=params['window_overlap'],
+                                                                  output_dict=output_dict)
 
     if output_dict:
         out_dir = os.path.dirname(args.output)
         os.makedirs(out_dir, exist_ok=True)
-        with open(args.output, 'w') as fd:
+        path = os.path.join(args.output, 'metrics.json')
+        with open(path, 'w') as fd:
             json.dump(metrics, fd)
+        path = os.path.join(args.output, 'errors.csv')
+        with open(path, 'w') as fd:
+            fd.write('sample,pred,true\r\n')
+            for n in range(len(err_samples)):
+                fd.write('%s,%s,%s\r\n' % (err_samples[n], err_pred[n], err_true[n]))
     else:
         print(metrics)
+        print(err_samples)
+        print('sample,pred,true\r\n')
+        for n in range(len(err_samples)):
+            print('%s,%s,%s' % (err_samples[n], err_pred[n], err_true[n]))

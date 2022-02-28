@@ -20,7 +20,7 @@ stages:
         - model/train/${model_name}/plot.csv:
             cache: false
   evaluate:
-    cmd: python model/src/evaluator.py model/train/${model_name}/best.h5 params.yaml datasets/testlist.txt  --output model/eval/${model_name}/metrics.json 2>&1 | tee eval.log
+    cmd: python model/src/evaluator.py model/train/${model_name}/best.h5 params.yaml datasets/testlist.txt  --output model/eval/${model_name}/ 2>&1 | tee eval.log
     deps:
         - model/train/${model_name}/best.h5
         - model/src/evaluator.py
@@ -28,5 +28,7 @@ stages:
         - params.yaml
     metrics:
         - model/eval/${model_name}/metrics.json:
+            cache: false
+        - model/eval/${model_name}/errors.csv:
             cache: false
 
