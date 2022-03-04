@@ -75,12 +75,19 @@ class MajorityVotingEvaluator(EvaluatorBase):
                 labels_true = np.vstack((labels_true, label_true))
                 labels_pred = np.vstack((labels_pred, label_pred))
 
-        sorted_labels = metadata_extractor.get_labels(
+        labels_pred = np.squeeze(labels_pred)
+        labels_true = np.squeeze(labels_true)
+
+        ordered_labels = metadata_extractor.get_labels(
             metadata_extractor.ALLOWED_CLASSES)
         output_dict = kwargs.get('output_dict', False)
         metrics = sklearn.metrics.classification_report(
-            labels_true, labels_pred, target_names=sorted_labels, output_dict=output_dict)
-        return metrics
+            labels_true, labels_pred, target_names=ordered_labels, output_dict=output_dict)
+
+        samples = validation_list
+        preds = [ordered_labels[x] for x in labels_pred]
+        true = [ordered_labels[x] for x in labels_true]
+        return metrics, samples, preds, true
 
 
 if __name__ == '__main__':
@@ -90,7 +97,7 @@ if __name__ == '__main__':
     parser.add_argument('params', help='yaml for parameters of provided file')
     parser.add_argument(
         'filelist', help='path to filelist to be used for evaluation')
-    parser.add_argument('--output', help='Filepath to save output')
+    parser.add_argument('--output', help='Path to save outputs')
     args = parser.parse_args()
 
     model_path = args.model
@@ -106,16 +113,26 @@ if __name__ == '__main__':
     evaluator = factory.get_evaluator()
 
     output_dict = True if args.output is not None else False
-    metrics = evaluator.evaluate(m,
-                                 validationlist,
-                                 model_input=factory.INPUT_SIZE,
-                                 window_overlap=params['window_overlap'],
-                                 output_dict=output_dict)
+    metrics, samples, pred, true = evaluator.evaluate(m,
+                                                      validationlist,
+                                                      model_input=factory.INPUT_SIZE,
+                                                      window_overlap=params['window_overlap'],
+                                                      output_dict=output_dict)
 
     if output_dict:
         out_dir = os.path.dirname(args.output)
         os.makedirs(out_dir, exist_ok=True)
-        with open(args.output, 'w') as fd:
+        path = os.path.join(args.output, 'metrics.json')
+        with open(path, 'w') as fd:
             json.dump(metrics, fd)
+        path = os.path.join(args.output, 'result.csv')
+        with open(path, 'w') as fd:
+            fd.write('sample,pred,true\r\n')
+            for n in range(len(samples)):
+                fd.write('%s,%s,%s\r\n' %
+                         (samples[n], pred[n], true[n]))
     else:
         print(metrics)
+        print('sample,pred,true\r\n')
+        for n in range(len(samples)):
+            print('%s,%s,%s' % (samples[n], pred[n], true[n]))

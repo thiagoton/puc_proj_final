@@ -1,9 +1,5 @@
 [core]
-    remote = data_bucket
+    remote = origin
     autostage = true
-[cache]
-    dir = ../.dvc_cache
-    shared = group
-    type = symlink
-['remote "data_bucket"']
-    url = ssh://dvc_agent@vm2.thton.dynu.net/home/dvc_agent/files/dvc_bucket/
+['remote "origin"']
+    url = https://dagshub.com/thiagoton/puc_proj_final.dvc
