@@ -46,6 +46,7 @@ fi
 PROJ_ROOT=$(pwd)
 export PROJ_ROOT="$PROJ_ROOT"
 export CONDA_PREFIX="$CONDA_PREFIX"
+export PYTHONPATH="$PROJ_ROOT:$PYTHONPATH"
 
 # environment is ready
 export PUC_PROJ_ENV_SET=1
