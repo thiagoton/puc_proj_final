@@ -1,0 +1,57 @@
+schema: '2.0'
+stages:
+  train:
+    cmd: python model/src/train.py 2>&1 | tee train.log
+    deps:
+    - path: datasets/samples/preprocessed/
+      md5: 65e73a0517c160945022ac8539d14878.dir
+      size: 2269754365
+      nfiles: 17464
+    - path: datasets/trainlist.txt
+      md5: 0db2323259560a4204169138078474d0
+      size: 60300
+    - path: model/src/train.py
+      md5: 4deb5e8e472fa425c4b522f61bcf3cdf
+      size: 5374
+    - path: params.yaml
+      md5: d3c09ee38f1d24828684240df2168f96
+      size: 918
+    outs:
+    - path: model/train/WaveNet/best.h5
+      md5: 1a03c8319662d3d66caebe0483eaa4fd
+      size: 256729104
+    - path: model/train/WaveNet/best.json
+      md5: b70ded3baea01654d896819c3c277d6c
+      size: 73
+    - path: model/train/WaveNet/checkpoint.h5
+      md5: e149f6c657a9bfc35b4a7a78215ef527
+      size: 256729104
+    - path: model/train/WaveNet/checkpoint.json
+      md5: 0b0e1ef891c8c6758292f264839eb16d
+      size: 72
+    - path: model/train/WaveNet/plot.csv
+      md5: 9c2580087abf06d756397e2b805a9533
+      size: 17004
+  evaluate:
+    cmd: python model/src/evaluator.py model/train/WaveNet/best.h5 params.yaml datasets/testlist.txt  --output
+      model/eval/WaveNet/ 2>&1 | tee eval.log
+    deps:
+    - path: datasets/testlist.txt
+      md5: 619cb64e8c239ab15b9cb9f922861dd5
+      size: 25728
+    - path: model/src/evaluator.py
+      md5: 465a2fbd7baf187dc23a7f273a4d76c2
+      size: 4808
+    - path: model/train/WaveNet/best.h5
+      md5: 1a03c8319662d3d66caebe0483eaa4fd
+      size: 256729104
+    - path: params.yaml
+      md5: d3c09ee38f1d24828684240df2168f96
+      size: 918
+    outs:
+    - path: model/eval/WaveNet/metrics.json
+      md5: f338a40f514880a939b5551c504f4f20
+      size: 577
+    - path: model/eval/WaveNet/result.csv
+      md5: eedece5094487c8b30de12de7679598e
+      size: 30508

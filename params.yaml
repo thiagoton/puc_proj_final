@@ -1,5 +1,5 @@
 # model name
-model_name: SmallCnn
+model_name: WaveNet
 
 # batch size used during fit
 batch_size: 64
