@@ -9,5 +9,3 @@ dependencies:
   - librosa
   - dvc=2.9
   - dvc-ssh
-  - rclone
-  - git-crypt
