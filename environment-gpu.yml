@@ -9,3 +9,6 @@ dependencies:
   - librosa
   - dvc=2.9
   - dvc-ssh
+  - pip
+  - pip:
+    - nvitop
