@@ -9,6 +9,7 @@ dependencies:
   - librosa
   - dvc=2.9
   - dvc-ssh
+  - tensorboard
   - pip
   - pip:
     - nvitop
