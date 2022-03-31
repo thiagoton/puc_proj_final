@@ -6,12 +6,9 @@ import sys
 import argparse
 
 # import infrastructure
-ROOT_SCRIPTS_PATH = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), os.path.pardir, os.path.pardir, 'scripts'))
-sys.path.append(ROOT_SCRIPTS_PATH)
-import media_descriptor  # nopep8
-import media_audio  # nopep8
-import utils # nopep8
+from common import media_descriptor  # nopep8
+from common import media_audio  # nopep8
+from common import utils # nopep8
 
 
 def parse_args(args=sys.argv[1:]):

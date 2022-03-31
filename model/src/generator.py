@@ -6,12 +6,9 @@ import random
 import tensorflow as tf
 
 # import infrastructure
-ROOT_SCRIPTS_PATH = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), os.path.pardir, os.path.pardir, 'scripts'))
-sys.path.append(ROOT_SCRIPTS_PATH)
-import media_descriptor  # nopep8
-import media_audio  # nopep8
-import metadata_extractor  # nopep8
+from common import media_descriptor  # nopep8
+from common import media_audio  # nopep8
+from common import metadata_extractor  # nopep8
 
 
 def load_data(path: str) -> typing.Tuple[media_audio.MediaAudio, media_descriptor.MediaDescriptor]:
@@ -112,7 +109,7 @@ class DataGenerator(tf.keras.utils.Sequence):
         random.shuffle(self.file_list)
 
 class RandomWindowAudioGenerator:
-    def __init__(self, file_list: list, window_size: int, max_resample_file=5):
+    def __init__(self, file_list: list, window_size: int, max_resample_file=5, **kwargs):
         self.file_list = file_list
         self.window_size = window_size
         self.max_resample_file = max_resample_file
@@ -154,7 +151,7 @@ class RandomWindowAudioGenerator:
                 yield (np.expand_dims(audio[start:end], axis=-1), label_onehot)
 
 class DatasetLoader:
-    def __init__(self, file_list: list, batch_size: int, input_size: int, window_overlap: float) -> None:
+    def __init__(self, file_list: list, batch_size: int, input_size: int, window_overlap: float, **kwargs) -> None:
         self.file_list = file_list
         self.batch_size = batch_size
         self.input_size = input_size

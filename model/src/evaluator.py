@@ -10,11 +10,8 @@ import model
 import json
 
 # import infrastructure
-ROOT_SCRIPTS_PATH = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), os.path.pardir, os.path.pardir, 'scripts'))
-sys.path.append(ROOT_SCRIPTS_PATH)
-import utils  # nopep8
-import metadata_extractor  # nopep8
+from common import utils  # nopep8
+from common import metadata_extractor  # nopep8
 
 
 def confusion_matrix(preds: np.array, trues: np.array, normalize=False):

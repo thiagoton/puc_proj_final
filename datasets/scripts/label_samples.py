@@ -1,12 +1,8 @@
 import os
 import sys
 
-# import infrastructure
-ROOT_SCRIPTS_PATH = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), os.path.pardir, os.path.pardir, 'scripts'))
-sys.path.append(ROOT_SCRIPTS_PATH)
-import media_descriptor  # nopep8
-from metadata_extractor import *  # nopep8
+from common import media_descriptor  # nopep8
+from common.metadata_extractor import *  # nopep8
 
 
 def load_samples(folder):
