@@ -1,5 +1,5 @@
 # model name
-model_name: WaveNet
+model_name: SmallCnn
 
 # batch size used during fit
 batch_size: 64
@@ -25,3 +25,23 @@ SmallCnn:
 WaveNet: {}
 
 TimeDistributedCnnLstm: {}
+
+# data augmentation operations
+DataAugmentation:
+  enabled: true
+  
+  # define which operations should be applied
+  operations:
+
+    # apply white noise
+    white_noise:
+      prob: 0.2 # probability to be applied
+      sigma_min: 0.05 # minimum value of noise signal
+      sigma_max: 0.9 # maximum value of noise signal
+
+    multiplier:
+      prob: 0.2 # probability to be applied
+      min: 0.5 # minimum value
+      max: 1.5 # maximum value
+
+  order: [multiplier, white_noise]

@@ -2,16 +2,15 @@ import tensorflow as tf
 from numpy.lib import utils
 from tensorflow.keras import callbacks
 import model
-import sys
 import os
 import numpy as np
 # Import TensorBoard
 import datetime
 from generator import *
-import json
 import dvc.api
 import time
 import logger
+import augmentation
 
 # import infrastructure
 from common import media_descriptor  # nopep8
@@ -77,7 +76,12 @@ def train(trainlist, validationlist=[]):
     else:
         tensorboard_cb = callbacks.TensorBoard(log_dir=logs_folder)
 
-    data_loader = DatasetLoader(trainlist, batch_size, factory.INPUT_SIZE, window_overlap)
+    data_aug = None
+    if 'DataAugmentation' in params.keys():
+        data_aug = augmentation.DataAugmenter(params['DataAugmentation'])
+
+    data_loader = DatasetLoader(
+        trainlist, batch_size, factory.INPUT_SIZE, window_overlap, data_aug=data_aug)
     val_data_gen = None
     if len(validationlist):
         val_data_gen = DataGenerator(validationlist,
@@ -133,12 +137,14 @@ def train(trainlist, validationlist=[]):
         if val_acc > best_acc:
             best_acc = val_acc
             log.save_model(m, 'best.h5')
-            log.log_metric(CheckpointState(epoch_index, val_acc, val_loss).asJson(), filename='best.json')
+            log.log_metric(CheckpointState(epoch_index, val_acc,
+                           val_loss).asJson(), filename='best.json')
             do_checkpoint = True
 
         if (keep_checkpoint_at_every_n_epoch > 0) and (epoch_index % keep_checkpoint_at_every_n_epoch == 0):
             log.save_model(m, 'checkpoint.h5')
-            log.log_metric(CheckpointState(epoch_index, acc, loss).asJson(), filename='checkpoint.json')
+            log.log_metric(CheckpointState(epoch_index, acc,
+                           loss).asJson(), filename='checkpoint.json')
             do_checkpoint = True
 
         if do_checkpoint:

@@ -108,11 +108,13 @@ class DataGenerator(tf.keras.utils.Sequence):
     def on_epoch_end(self):
         random.shuffle(self.file_list)
 
+
 class RandomWindowAudioGenerator:
     def __init__(self, file_list: list, window_size: int, max_resample_file=5, **kwargs):
         self.file_list = file_list
         self.window_size = window_size
         self.max_resample_file = max_resample_file
+        self.data_aug = kwargs.get('data_aug', None)
 
     def __adjust_audio_length(self, audio) -> np.array:
         len_audio = len(audio)
@@ -120,7 +122,8 @@ class RandomWindowAudioGenerator:
             # no need to adjust size
             return audio
 
-        size_diff = self.window_size - len_audio + 10 # make a fixed increment, so window size is always smaller than audio length
+        # make a fixed increment, so window size is always smaller than audio length
+        size_diff = self.window_size - len_audio + 10
         prepend_size = np.random.randint(0, size_diff)
         append_size = size_diff - prepend_size
 
@@ -140,8 +143,12 @@ class RandomWindowAudioGenerator:
             for n in range(resample_file):
                 data, metadata = load_data(file)
                 audio = data.y
+
+                if self.data_aug:
+                    audio = self.data_aug.augment(audio)
+
                 label = metadata_extractor.translate_label(
-                        metadata_extractor.ALLOWED_CLASSES, metadata.data()['label'])
+                    metadata_extractor.ALLOWED_CLASSES, metadata.data()['label'])
 
                 audio = self.__adjust_audio_length(audio)
                 start, end = self.__select_window(len(audio))
@@ -150,17 +157,19 @@ class RandomWindowAudioGenerator:
                 label_onehot[label] = 1
                 yield (np.expand_dims(audio[start:end], axis=-1), label_onehot)
 
+
 class DatasetLoader:
     def __init__(self, file_list: list, batch_size: int, input_size: int, window_overlap: float, **kwargs) -> None:
         self.file_list = file_list
         self.batch_size = batch_size
         self.input_size = input_size
         self.window_overlap = window_overlap
+        self.data_aug = kwargs.get('data_aug', None)
 
     def dataset(self) -> tf.data.Dataset:
         max_resample_file = 5
         gen = RandomWindowAudioGenerator(
-            self.file_list, self.input_size, max_resample_file=max_resample_file)
+            self.file_list, self.input_size, max_resample_file=max_resample_file, data_aug=self.data_aug)
 
         ds = tf.data.Dataset.from_generator(gen.next,
                                             output_types=(
