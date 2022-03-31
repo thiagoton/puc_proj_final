@@ -25,6 +25,7 @@ class TimeDistributedCnnLstm(BaseFactory):
         super().__init__()
         self.INPUT_SIZE = int(params.get('input_size', 128))
         self.TIME_WINDOW_SIZE = int(params.get('time_window_size', 5))
+        self.lr = float(params.get('lr', 1e-3))
 
     def build_model(self, **kwargs):
         model = tf.keras.Sequential()
@@ -45,7 +46,7 @@ class TimeDistributedCnnLstm(BaseFactory):
         model.add(LSTM(5))
         model.add(Dense(3))
         model.compile(loss='categorical_crossentropy',
-                      optimizer='adam', metrics=['accuracy'])
+                      optimizer=tf.keras.optimizers.Adam(learning_rate=self.lr), metrics=['accuracy'])
         return model
 
     def get_evaluator(self, **kwargs):
@@ -63,6 +64,7 @@ class SmallCnn(BaseFactory):
     def __init__(self, **params) -> None:
         super().__init__()
         self.INPUT_SIZE = int(params.get('input_size', 128))
+        self.lr = float(params.get('lr', 1e-3))
 
     def build_model(self, **kwargs):
         model = tf.keras.Sequential()
@@ -82,7 +84,7 @@ class SmallCnn(BaseFactory):
         model.add(Dense(16))
         model.add(Dense(3, activation='softmax'))
         model.compile(loss='categorical_crossentropy',
-                      optimizer='adam', metrics=['accuracy'])
+                      optimizer=tf.keras.optimizers.Adam(learning_rate=self.lr), metrics=['accuracy'])
         return model
 
     def get_evaluator(self, **kwargs):
@@ -96,6 +98,7 @@ class Cnn(BaseFactory):
     def __init__(self, **params) -> None:
         super().__init__()
         self.INPUT_SIZE = int(params.get('input_size', 128))
+        self.lr = float(params.get('lr', 1e-3))
 
     def build_model(self, **kwargs):
         model = tf.keras.Sequential()
@@ -131,7 +134,7 @@ class Cnn(BaseFactory):
         model.add(Dense(64))
         model.add(Dense(3, activation='softmax'))
         model.compile(loss='categorical_crossentropy',
-                      optimizer='adam', metrics=['accuracy'])
+                      optimizer=tf.keras.optimizers.Adam(learning_rate=self.lr), metrics=['accuracy'])
         return model
 
     def get_evaluator(self, **kwargs):
@@ -146,6 +149,7 @@ class WaveNet(BaseFactory):
         super().__init__()
         input_window = float(params.get('input_window', 1.5))
         self.INPUT_SIZE = int(input_window * 24000)
+        self.lr = float(params.get('lr', 1e-3))
 
     def build_model(self, **kwargs):
         model = tf.keras.Sequential()
@@ -205,7 +209,7 @@ class WaveNet(BaseFactory):
         model.add(Dense(3, activation='softmax'))
 
         model.compile(loss='categorical_crossentropy',
-                      optimizer='adam', metrics=['accuracy'])
+                      optimizer=tf.keras.optimizers.Adam(learning_rate=self.lr), metrics=['accuracy'])
         return model
 
     def get_evaluator(self, **kwargs):

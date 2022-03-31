@@ -22,7 +22,8 @@ Cnn:
 SmallCnn:
   input_size: 32
 
-WaveNet: {}
+WaveNet:
+  lr: 0.0001
 
 TimeDistributedCnnLstm: {}
 
