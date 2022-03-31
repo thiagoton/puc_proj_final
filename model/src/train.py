@@ -95,7 +95,7 @@ def train(trainlist, validationlist=[]):
         if val_data_gen:
             val_x = None
             val_y = None
-            for n in range(5):
+            for n in range(30):
                 x, y = val_data_gen[n]
                 if val_x is None:
                     val_x = x
