@@ -5,13 +5,14 @@ import json
 
 
 class Logger:
-    def __init__(self, logdir) -> None:
+    def __init__(self, logdir, clear_old=True) -> None:
         '''
         Creates a logger object
         '''
         self.logdir = os.path.abspath(logdir)
         os.makedirs(self.logdir, exist_ok=True)
-        self.__clear_files()
+        if clear_old:
+            self.__clear_files()
 
     def __output_path(self, filename):
         '''

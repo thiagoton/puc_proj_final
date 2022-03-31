@@ -11,6 +11,7 @@ import dvc.api
 import time
 import logger
 import augmentation
+import json
 
 # import infrastructure
 from common import media_descriptor  # nopep8
@@ -68,7 +69,22 @@ def train(trainlist, validationlist=[]):
     experiment_folder, checkpoint_folder, logs_folder = prepare_experiment(
         experiment_tag, model_name)
 
-    log = logger.Logger(checkpoint_folder)
+    ## check for training resume
+    epoch_start = 0
+    ckpt_path = os.path.join(checkpoint_folder, 'checkpoint.h5')
+    resume_training=False
+    if os.path.exists(ckpt_path):
+        meta_path = ckpt_path.replace('.h5', '.json')
+        assert os.path.exists(meta_path), 'Checkpoint metadata is missing. Impossible to continue training'
+        
+        with open(meta_path) as fd:
+            meta = json.load(fd)
+
+        m.load_weights(ckpt_path)
+        epoch_start = meta['epoch'] + 1
+        print('Resuming training from', meta['epoch'])
+        resume_training=True
+    log = logger.Logger(checkpoint_folder, clear_old=not resume_training)
 
     if len(validationlist):
         tensorboard_cb = callbacks.TensorBoard(
@@ -89,7 +105,7 @@ def train(trainlist, validationlist=[]):
                                      factory.INPUT_SIZE, window_overlap)
     best_acc = 0
     cummulative_time = 0
-    for epoch_index in range(epochs):
+    for epoch_index in range(epoch_start, epochs):
         print('epoch: %d' % (epoch_index))
         val_data = None
         if val_data_gen:
