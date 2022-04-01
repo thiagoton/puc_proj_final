@@ -44,13 +44,13 @@ class TimeDistributedCnnLstm(BaseFactory):
         model.add(TimeDistributed(op))
 
         model.add(LSTM(5))
-        model.add(Dense(3))
+        model.add(Dense(2))
         model.compile(loss='categorical_crossentropy',
                       optimizer=tf.keras.optimizers.Adam(learning_rate=self.lr), metrics=['accuracy'])
         return model
 
     def get_evaluator(self, **kwargs):
-        return evaluator.MajorityVotingEvaluator()
+        return evaluator.MajorityVotingEvaluator(kwargs)
 
 
 register_factory(TimeDistributedCnnLstm)
@@ -82,13 +82,13 @@ class SmallCnn(BaseFactory):
         model.add(op)
 
         model.add(Dense(16))
-        model.add(Dense(3, activation='softmax'))
+        model.add(Dense(2, activation='softmax'))
         model.compile(loss='categorical_crossentropy',
                       optimizer=tf.keras.optimizers.Adam(learning_rate=self.lr), metrics=['accuracy'])
         return model
 
     def get_evaluator(self, **kwargs):
-        return evaluator.MajorityVotingEvaluator()
+        return evaluator.MajorityVotingEvaluator(kwargs)
 
 
 register_factory(SmallCnn)
@@ -132,13 +132,13 @@ class Cnn(BaseFactory):
 
         model.add(Dense(512))
         model.add(Dense(64))
-        model.add(Dense(3, activation='softmax'))
+        model.add(Dense(2, activation='softmax'))
         model.compile(loss='categorical_crossentropy',
                       optimizer=tf.keras.optimizers.Adam(learning_rate=self.lr), metrics=['accuracy'])
         return model
 
     def get_evaluator(self, **kwargs):
-        return evaluator.MajorityVotingEvaluator()
+        return evaluator.MajorityVotingEvaluator(kwargs)
 
 
 register_factory(Cnn)
@@ -206,14 +206,14 @@ class WaveNet(BaseFactory):
 
         model.add(Dense(512))
         model.add(Dense(64))
-        model.add(Dense(3, activation='softmax'))
+        model.add(Dense(2, activation='softmax'))
 
         model.compile(loss='categorical_crossentropy',
                       optimizer=tf.keras.optimizers.Adam(learning_rate=self.lr), metrics=['accuracy'])
         return model
 
     def get_evaluator(self, **kwargs):
-        return evaluator.MajorityVotingEvaluator()
+        return evaluator.MajorityVotingEvaluator(kwargs)
 
 
 register_factory(WaveNet)

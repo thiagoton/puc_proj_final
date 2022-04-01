@@ -28,7 +28,7 @@ def prepare_data(data: media_audio.MediaAudio, metadata: media_descriptor.MediaD
     '''
     Prepare data so in can be fed into training phase
     '''
-    output_size = len(metadata_extractor.ALLOWED_CLASSES.keys())
+    output_size = len(metadata_extractor.ALLOWED_CLASSES.keys()) - 1
     audio = data.y
     label = metadata_extractor.translate_label(
         metadata_extractor.ALLOWED_CLASSES, metadata.data()['label'])
@@ -41,7 +41,8 @@ def prepare_data(data: media_audio.MediaAudio, metadata: media_descriptor.MediaD
 
     for i in range(input_size, len(audio) + 1, int(input_size * (1.0 - window_overlap))):
         y = np.zeros((output_size,))
-        y[label] = 1
+        if label < output_size:
+            y[label] = 1
         Y.append(y)
 
         x = np.expand_dims(np.array(audio[(i - input_size):i]), axis=-1)
@@ -139,6 +140,7 @@ class RandomWindowAudioGenerator:
 
     def next(self):
         resample_file = max(1, self.max_resample_file)
+        output_size = len(metadata_extractor.ALLOWED_CLASSES.keys()) - 1
         for file in self.file_list:
             for n in range(resample_file):
                 data, metadata = load_data(file)
@@ -153,8 +155,9 @@ class RandomWindowAudioGenerator:
                 audio = self.__adjust_audio_length(audio)
                 start, end = self.__select_window(len(audio))
 
-                label_onehot = np.zeros((3,))
-                label_onehot[label] = 1
+                label_onehot = np.zeros((output_size,))
+                if label < output_size:
+                    label_onehot[label] = 1
                 yield (np.expand_dims(audio[start:end], axis=-1), label_onehot)
 
 
@@ -174,7 +177,7 @@ class DatasetLoader:
         ds = tf.data.Dataset.from_generator(gen.next,
                                             output_types=(
                                                 tf.float32, tf.int32),
-                                            output_shapes=(tf.TensorShape([self.input_size, 1]), tf.TensorShape([3, ])))
+                                            output_shapes=(tf.TensorShape([self.input_size, 1]), tf.TensorShape([2, ])))
         ds = ds.shuffle(buffer_size=self.batch_size*(max_resample_file*10))
         ds = ds.batch(self.batch_size)
         ds = ds.prefetch(buffer_size=tf.data.experimental.AUTOTUNE)

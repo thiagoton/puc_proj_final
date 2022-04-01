@@ -40,16 +40,32 @@ class EvaluatorBase:
 
 
 class MajorityVotingEvaluator(EvaluatorBase):
-    def __init__(self) -> None:
+    def __init__(self, **kwargs) -> None:
         super().__init__()
+        self.vote_th = kwargs.get('vote_th', 0.8)
 
-    @staticmethod
-    def get_max_votes(one_hot_pred: np.array):
-        votes = np.argmax(one_hot_pred, axis=-1)
+    def get_max_votes(self, one_hot_pred: np.array):
+        one_hot_pred[one_hot_pred > self.vote_th] = 1
+        one_hot_pred[one_hot_pred <= self.vote_th] = 0
+        sum_one_hot = np.sum(one_hot_pred, axis=-1)
+
+        non_noise_one_hot = one_hot_pred[sum_one_hot > 0]
+        votes_noise = np.sum(sum_one_hot == 0)
+
+        votes = np.argmax(non_noise_one_hot, axis=-1)
         labels, counts = np.unique(votes, return_counts=True)
-        max_id = np.argmax(counts)
 
-        return labels[max_id], counts[max_id]
+        max_count = 0
+        max_label = metadata_extractor.ALLOWED_CLASSES['noise']
+        if len(counts):
+            max_id = np.argmax(counts)
+            max_count = counts[max_id]
+            max_label = labels[max_id]
+
+        if votes_noise > max_count:
+            return metadata_extractor.ALLOWED_CLASSES['noise'], votes_noise
+
+        return max_label, max_count
 
     def evaluate(self, model: tf.keras.Model, validation_list: list, **kwargs):
         model_input = kwargs['model_input']
@@ -79,7 +95,7 @@ class MajorityVotingEvaluator(EvaluatorBase):
             metadata_extractor.ALLOWED_CLASSES)
         output_dict = kwargs.get('output_dict', False)
         metrics = sklearn.metrics.classification_report(
-            labels_true, labels_pred, target_names=ordered_labels, output_dict=output_dict)
+            labels_true, labels_pred, target_names=ordered_labels, output_dict=output_dict, labels=[0,1,2])
 
         samples = validation_list
         preds = [ordered_labels[x] for x in labels_pred]
@@ -87,7 +103,7 @@ class MajorityVotingEvaluator(EvaluatorBase):
         return metrics, samples, preds, true
 
 
-if __name__ == '__main__':
+def parse_args(argv=None):
     parser = argparse.ArgumentParser(
         description='Evaluation script for trained models')
     parser.add_argument('model', help='path to keras model to be evaluated')
@@ -95,10 +111,16 @@ if __name__ == '__main__':
     parser.add_argument(
         'filelist', help='path to filelist to be used for evaluation')
     parser.add_argument('--output', help='Path to save outputs')
-    args = parser.parse_args()
 
+    if argv is None:
+        args = parser.parse_args()
+    else:
+        args = parser.parse_args(argv)
+    return args
+
+
+def evaluate(args):
     model_path = args.model
-    print(args)
 
     params = utils.load_params(args.params)
     validationlist = utils.load_filelist(args.filelist)
@@ -107,7 +129,7 @@ if __name__ == '__main__':
     m = factory.build_model()
     m.load_weights(model_path)
 
-    evaluator = factory.get_evaluator()
+    evaluator = factory.get_evaluator(params['Evaluator'])
 
     output_dict = True if args.output is not None else False
     metrics, samples, pred, true = evaluator.evaluate(m,
@@ -133,3 +155,12 @@ if __name__ == '__main__':
         print('sample,pred,true\r\n')
         for n in range(len(samples)):
             print('%s,%s,%s' % (samples[n], pred[n], true[n]))
+
+
+def main():
+    args = parse_args()
+    evaluate(args)
+
+
+if __name__ == '__main__':
+    main()

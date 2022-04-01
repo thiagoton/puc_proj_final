@@ -46,3 +46,7 @@ DataAugmentation:
       max: 1.5 # maximum value
 
   order: [multiplier, white_noise]
+
+
+Evaluator:
+  vote_th: 0.8
