@@ -103,25 +103,25 @@ def train(trainlist, validationlist=[]):
         val_data_gen = DataGenerator(validationlist,
                                      file_batch_size,
                                      factory.INPUT_SIZE, window_overlap)
+
+    val_data = None
+    if val_data_gen:
+        val_x = None
+        val_y = None
+        for n in range(len(val_data_gen)):
+            x, y = val_data_gen[n]
+            if val_x is None:
+                val_x = x
+                val_y = y
+            else:
+                val_x = np.vstack((val_x, x))
+                val_y = np.vstack((val_y, y))
+        val_data = (val_x, val_y)
+
     best_acc = 0
     cummulative_time = 0
     for epoch_index in range(epoch_start, epochs):
         print('epoch: %d' % (epoch_index))
-        val_data = None
-        if val_data_gen:
-            val_x = None
-            val_y = None
-            for n in range(30):
-                x, y = val_data_gen[n]
-                if val_x is None:
-                    val_x = x
-                    val_y = y
-                else:
-                    val_x = np.vstack((val_x, x))
-                    val_y = np.vstack((val_y, y))
-            val_data = (val_x, val_y)
-
-            val_data_gen.on_epoch_end()
 
         t0 = time.time()
         history = m.fit(data_loader.dataset(),
