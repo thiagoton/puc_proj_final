@@ -170,4 +170,10 @@ def train(trainlist, validationlist=[]):
 trainlist = utils.load_filelist('datasets/trainlist.txt')
 validationlist = utils.load_filelist('datasets/testlist.txt')
 
+t_start = datetime.datetime.now()
+print('Start training at', t_start.ctime())
 train(trainlist, validationlist)
+t_end = datetime.datetime.now()
+print('End of training at', t_end.ctime())
+print('Training took', str(t_end - t_start))
+
