@@ -78,8 +78,8 @@ class MajorityVotingEvaluator(EvaluatorBase):
         for n in range(len(gen)):
             x, y_true = gen.get_batch_item(n, shuffle=False)
             y_pred = model.predict(x)
-            label_true = MajorityVotingEvaluator.get_max_votes(y_true)[0]
-            label_pred = MajorityVotingEvaluator.get_max_votes(y_pred)[0]
+            label_true = self.get_max_votes(y_true)[0]
+            label_pred = self.get_max_votes(y_pred)[0]
 
             if labels_true is None:
                 labels_true = label_true
@@ -129,7 +129,7 @@ def evaluate(args):
     m = factory.build_model()
     m.load_weights(model_path)
 
-    evaluator = factory.get_evaluator(params['Evaluator'])
+    evaluator = factory.get_evaluator(**params['Evaluator'])
 
     output_dict = True if args.output is not None else False
     metrics, samples, pred, true = evaluator.evaluate(m,

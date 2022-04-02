@@ -50,7 +50,7 @@ class TimeDistributedCnnLstm(BaseFactory):
         return model
 
     def get_evaluator(self, **kwargs):
-        return evaluator.MajorityVotingEvaluator(kwargs)
+        return evaluator.MajorityVotingEvaluator(**kwargs)
 
 
 register_factory(TimeDistributedCnnLstm)
@@ -88,7 +88,7 @@ class SmallCnn(BaseFactory):
         return model
 
     def get_evaluator(self, **kwargs):
-        return evaluator.MajorityVotingEvaluator(kwargs)
+        return evaluator.MajorityVotingEvaluator(**kwargs)
 
 
 register_factory(SmallCnn)
@@ -138,7 +138,7 @@ class Cnn(BaseFactory):
         return model
 
     def get_evaluator(self, **kwargs):
-        return evaluator.MajorityVotingEvaluator(kwargs)
+        return evaluator.MajorityVotingEvaluator(**kwargs)
 
 
 register_factory(Cnn)
@@ -213,7 +213,7 @@ class WaveNet(BaseFactory):
         return model
 
     def get_evaluator(self, **kwargs):
-        return evaluator.MajorityVotingEvaluator(kwargs)
+        return evaluator.MajorityVotingEvaluator(**kwargs)
 
 
 register_factory(WaveNet)
