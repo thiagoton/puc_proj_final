@@ -4,34 +4,34 @@ stages:
     cmd: python model/src/train.py 2>&1 | tee train.log
     deps:
     - path: datasets/samples/preprocessed/
-      md5: 65e73a0517c160945022ac8539d14878.dir
-      size: 2269754365
-      nfiles: 17464
+      md5: 299ca0eb5c5735eba9a224b89df72887.dir
+      size: 2269466317
+      nfiles: 17463
     - path: datasets/trainlist.txt
       md5: 0db2323259560a4204169138078474d0
       size: 60300
     - path: model/src/train.py
-      md5: 4deb5e8e472fa425c4b522f61bcf3cdf
-      size: 5374
+      md5: 4a5272b61793bc70c2463854beba7618
+      size: 6189
     - path: params.yaml
-      md5: d3c09ee38f1d24828684240df2168f96
-      size: 918
+      md5: 6350f74a6fe77fdeb628e23f6442d21d
+      size: 928
     outs:
     - path: model/train/WaveNet/best.h5
-      md5: 1a03c8319662d3d66caebe0483eaa4fd
+      md5: 3aeb64875d788d052107c22aff17fa22
       size: 256729104
     - path: model/train/WaveNet/best.json
-      md5: b70ded3baea01654d896819c3c277d6c
-      size: 73
+      md5: 19acd9a9546c19049f9100d82b76f7ba
+      size: 74
     - path: model/train/WaveNet/checkpoint.h5
-      md5: e149f6c657a9bfc35b4a7a78215ef527
+      md5: 467b598cbf46a19b8e7aad5d5e23eeb8
       size: 256729104
     - path: model/train/WaveNet/checkpoint.json
-      md5: 0b0e1ef891c8c6758292f264839eb16d
-      size: 72
+      md5: e78f5959b4641c46a9d15c93b4c02643
+      size: 74
     - path: model/train/WaveNet/plot.csv
-      md5: 9c2580087abf06d756397e2b805a9533
-      size: 17004
+      md5: b61ac4c9e440a0ddcfe2f0e3fd13d7ac
+      size: 85632
   evaluate:
     cmd: python model/src/evaluator.py model/train/WaveNet/best.h5 params.yaml datasets/testlist.txt  --output
       model/eval/WaveNet/ 2>&1 | tee eval.log
@@ -43,15 +43,15 @@ stages:
       md5: 465a2fbd7baf187dc23a7f273a4d76c2
       size: 4808
     - path: model/train/WaveNet/best.h5
-      md5: 1a03c8319662d3d66caebe0483eaa4fd
+      md5: 2600807eb815ea6db4b2e207ce8d1b2f
       size: 256729104
     - path: params.yaml
-      md5: d3c09ee38f1d24828684240df2168f96
-      size: 918
+      md5: 6350f74a6fe77fdeb628e23f6442d21d
+      size: 928
     outs:
     - path: model/eval/WaveNet/metrics.json
-      md5: f338a40f514880a939b5551c504f4f20
-      size: 577
+      md5: 09e8790b24dfa974d2ccd56bcf411aa6
+      size: 608
     - path: model/eval/WaveNet/result.csv
-      md5: eedece5094487c8b30de12de7679598e
-      size: 30508
+      md5: 947d693b4afc1876c1d6989bc72889da
+      size: 30494
